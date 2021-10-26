@@ -1,12 +1,28 @@
 <template>
   <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
-    <router-view/>
+    <Nav />
+      <router-view/>
+    <Footer />
   </div>
 </template>
+
+<script>
+import Nav from '@/components/Navbar.vue';
+import Footer from '@/components/Footer.vue';
+
+export default {
+  name: 'App',
+  components: {
+    Nav,
+    Footer,
+  },
+  data() {
+    return {
+      // logoURL: Logo
+    };
+  },
+};
+</script>
 
 <style>
 #app {
