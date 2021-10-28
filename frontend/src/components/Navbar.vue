@@ -25,36 +25,12 @@
 </template>
 
 <script>
-import axios from 'axios';
 
 export default {
   data() {
     return {
       courses: [],
     };
-  },
-  methods: {
-    getCourses() {
-      const path = 'http://localhost:5000/courses';
-      axios.get(path)
-        .then((res) => {
-          this.courses = res.data.courses;
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-    },
-    burger: () => {
-      const x = document.getElementById('myTopNav');
-      if (x.className === 'topNav') {
-        x.className += ' responsive';
-      } else {
-        x.className = 'topNav';
-      }
-    },
-  },
-  created() {
-    this.getCourses();
   },
 };
 </script>
