@@ -1,6 +1,11 @@
 <template>
   <div class="home">
+    <div id="introduction">
     <h1>SimEx Cryptocurrency Exchange Simulator </h1>
+    <p>Welcome to SimEx, a cryptocurrency simulator that utilises the latest cryptocurrnecy prices.
+      Sign up today, and instantly get access to $100,000 US dollars that can be traded across the
+      simulator.</p>
+    </div>
 
   <table class="table">
   <thead class="thead-dark">
@@ -9,6 +14,7 @@
       <th scope="col">Symbol</th>
       <th scope="col">Currency Name</th>
       <th scope="col">Market Capitalisation</th>
+      <th scope="col">Current Price (USD) </th>
       <th scope="col">24hr Price High</th>
       <th scope="col">Percentage Change 24hr</th>
       <th scope="col"></th>
@@ -17,12 +23,13 @@
   <tbody>
     <tr v-for="row in marketRowData" :key="row.currencyName">
       <th scope="row"> {{ row.rank }}</th>
-      <td>{{ row.currencySymbol }}</td>
+      <td><img :src="row.currencyImg"> <b> {{ row.currencySymbol}} </b></td>
       <td>{{ row.currencyName }}</td>
-      <td>{{ row.mCap }}</td>
-      <td>{{ row.day_high}}</td>
-      <td>{{ row.day_percentage_change}}</td>
-      <td> <a href="">Trade</a></td>
+      <td><b>$</b>{{ row.mCap }}</td>
+      <td><b>$</b>{{ row.currentPrice }}</td>
+      <td><b>$</b>{{ row.day_high}}</td>
+      <td :style=setPercentageColour(row.day_percentage_change)>{{ row.day_percentage_change}}%</td>
+      <td> <a :href="'http://localhost:8080/api/trade?coin=' + row.currencySymbol">Trade</a></td>
     </tr>
   </tbody>
 </table>
@@ -44,6 +51,7 @@ export default {
   data() {
     return {
       currencyName: '',
+      currencyImg: '',
       currencySymbol: '',
       currentPrice: '',
       day_high: '',
@@ -71,19 +79,21 @@ export default {
       Object.keys(marketData).forEach((key) => {
         // console.log(marketData.markets[key]);
         console.log(marketData[key]);
+        console.log(typeof (marketData[key].price_change_percentage_24h));
         const row = {
           currencyName: marketData[key].id,
-          currencySymbol: marketData[key].symbol,
+          currencyImg: marketData[key].image,
+          currencySymbol: marketData[key].symbol.toUpperCase(),
           currentPrice: marketData[key].current_price,
           day_high: marketData[key].high_24h,
-          day_percentage_change: marketData[key].price_change_percentage_24h,
-          mCap: marketData[key].market_cap,
+          day_percentage_change: marketData[key].price_change_percentage_24h.toPrecision(2),
+          mCap: marketData[key].market_cap.toLocaleString(),
           rank: marketData[key].market_cap_rank,
         };
-        console.log(row);
         this.marketRowData.push(row);
 
         this.currencyName = '';
+        this.currencyImg = '';
         this.currencySymbol = '';
         this.currentPrice = '';
         this.day_high = '';
@@ -91,6 +101,10 @@ export default {
         this.mCap = '';
         this.rank = '';
       });
+    },
+    setPercentageColour(percentage) {
+      const color = (percentage.includes('-')) ? 'red' : 'green';
+      return `color: ${color}`;
     },
   },
 };
@@ -100,5 +114,26 @@ export default {
 .home{
   margin: auto;
   width: 75%;
+}
+h1{
+  padding: 2%;
+  font-weight: bold;
+}
+#introduction p{
+  padding: 5%;
+}
+#introduction{
+  width: 50%;
+  margin: auto;
+}
+td img{
+  width: 15%;
+  margin: 1%;
+}
+td p{
+  font-weight: bold;
+}
+td {
+  margin: auto;
 }
 </style>
