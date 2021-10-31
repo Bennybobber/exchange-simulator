@@ -16,13 +16,13 @@ class Database(object):
     def insert_new_user(data):
         #hashedData = encrypt_data(Database.user_collection)
         Database.DATABASE[Database.user_collection].insert(data)
-
+    @staticmethod
     def update_user(data):
         query = {
             "username": data['username']
         }
         currentUser = Database().find_one(query)
-        Database.DATABASE[Database.user_collection].update_one(query, data)
+        Database.DATABASE[Database.user_collection].replace_one(query, data)
 
     @staticmethod
     def find():
@@ -48,3 +48,10 @@ class Database(object):
             return True
         
         return False
+    @staticmethod
+    def retrieve_hashed_password(username):
+        query = {
+            "username": username
+        }
+        name_query = Database().DATABASE[Database.user_collection].find_one(query)
+        return name_query['password']

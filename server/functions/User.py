@@ -14,3 +14,9 @@ class User:
         }
 
         return query
+
+    def update_assets(self, assets):
+        self.assets = assets
+
+    def update_balance(self, balance):
+        self.balance = balance
