@@ -76,7 +76,7 @@ def login_user():
                 'iat':datetime.datetime.utcnow(),
                 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)},
                 app.config['SECRET_KEY'])  
-            return jsonify({'token' : token}) 
+            return jsonify({'accessToken' : token, 'id': auth['username']}) 
 
     return make_response('could not verify',  401, {'WWW.Authentication': 'Basic realm: "login required"'})
 

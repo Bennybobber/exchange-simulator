@@ -72,14 +72,18 @@ export default {
       .catch((error) => {
         console.log(error);
       });
+    try {
+      const user = localStorage.getItem('user');
+      if (user != null) {
+        console.log(user);
+      }
+    } catch (error) {
+      console.log('User not logged in');
+    }
   },
   methods: {
     extractData(marketData) {
-      console.log(marketData);
       Object.keys(marketData).forEach((key) => {
-        // console.log(marketData.markets[key]);
-        console.log(marketData[key]);
-        console.log(typeof (marketData[key].price_change_percentage_24h));
         const row = {
           currencyName: marketData[key].id,
           currencyImg: marketData[key].image,

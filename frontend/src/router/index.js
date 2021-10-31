@@ -21,10 +21,10 @@ const routes = [
     component: Register,
   },
   {
-    path: '/profile',
-    name: 'profile',
+    path: '/portfolio',
+    name: 'portfolio',
     // lazy-loaded
-    component: () => import('../views/Profile.vue'),
+    component: () => import('../views/Portfolio.vue'),
   },
 ];
 
