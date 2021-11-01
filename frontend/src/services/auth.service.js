@@ -11,7 +11,6 @@ class AuthService {
       })
       .then((response) => {
         if (response.data.accessToken) {
-          console.log(response);
           localStorage.setItem('user', JSON.stringify(response.data));
         }
 
@@ -21,6 +20,18 @@ class AuthService {
 
   logout() {
     localStorage.removeItem('user');
+    return { message: 'Logout Successful' };
+  }
+
+  refreshToken() {
+    const user = localStorage.getItem('user');
+    return axios.post(`${API_URL}refresh`, { headers: user.refreshToken })
+      .then((response) => {
+        if (response.data.accessToken) {
+          localStorage.setItem('user', JSON.stringify(response.data));
+          this.$store.state.auth.user.accessToken = response.data.accessToken;
+        }
+      });
   }
 
   register(user) {

@@ -4,42 +4,25 @@ import requests
 from flask_cors import CORS
 import pymongo
 import bcrypt
-import jwt
-import uuid
-import datetime
-from functools import wraps
+from flask_jwt_extended import (
+    JWTManager, jwt_required, create_access_token,
+    create_refresh_token,
+    get_jwt_identity
+)
+from bson import json_util, ObjectId
+import json
 
 from config import get_config
 from functions.database import Database
 from functions.User import User
 
 app = Flask(__name__)
+jwt = JWTManager(app)
 app.config['SECRET_KEY']='Th1s1ss3cr3t'
 CORS(app)
 CONFIG = get_config()
 client = pymongo.MongoClient(CONFIG.DB_URI)
 Database.initialize(CONFIG.DB_URI)
-
-def token_required(f):
-   @wraps(f)
-   def decorator(*args, **kwargs):
-
-        token = None
-
-        if 'x-access-tokens' in request.headers:
-            token = request.headers['x-access-tokens']
-
-        if not token:
-            return jsonify({'message': 'a valid token is missing'})
-
-        try:
-            data = jwt.decode(token, app.config[SECRET_KEY])
-            current_user = Database().find_one(data['public_id'])
-        except:
-            return jsonify({'message': 'token is invalid'})
-
-        return f(current_user, *args, **kwargs)
-   return decorator
 
 @app.route('/register', methods=['POST'])
 def user_registration():
@@ -62,23 +45,34 @@ def user_registration():
 
 @app.route('/login', methods=['POST'])  
 def login_user(): 
- 
     auth = request.json   
-    print(auth)
     if not auth or not auth['username'] or not auth['password']:  
         return make_response('could not verify', 401, {'WWW.Authentication': 'Basic realm: "login required"'})    
 
     username_exists = Database().check_username_exists(auth['username'])
     if username_exists:
         if bcrypt.checkpw(auth['password'].encode('utf-8'), Database().retrieve_hashed_password(auth['username'])):  
-            token = jwt.encode({
-                'public_id': auth['username'],
-                'iat':datetime.datetime.utcnow(),
-                'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)},
-                app.config['SECRET_KEY'])  
-            return jsonify({'accessToken' : token, 'id': auth['username']}) 
+            # token = jwt.encode({
+            #     'public_id': auth['username'],
+            #     'iat':datetime.datetime.utcnow(),
+            #     'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)},
+            #     app.config['SECRET_KEY'])
+            ret = {
+                'accessToken': create_access_token(identity=auth['username']),
+                'refreshToken': create_refresh_token(identity=auth['username']),
+            }  
+            return jsonify(ret), 200 
 
     return make_response('could not verify',  401, {'WWW.Authentication': 'Basic realm: "login required"'})
+
+@app.route('/refresh', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh():
+    current_user = get_jwt_identity()
+    ret = {
+        'accessToken': create_access_token(identity=current_user)
+    }
+    return jsonify(ret), 200
 
 @app.route('/api/market', methods=['GET'])
 def top_ten_markets():
@@ -100,22 +94,17 @@ def top_ten_markets():
         print(f'An Error Occured: {err}')
         return err
 
-sample = {
-    "username":"Beb",
-    "password":"Bobz",
-    "balance": "2000",
-    "assets": {"BTC": "1000"}
-}
-def test(data):
-    testUser = User("Beb", "Apple")
-    testUser2 = User(sample['username'], sample['password'], sample['balance'], sample['assets'])
-    print(testUser.return_query_data())
-    print(testUser2.return_query_data())
-    cursor = Database.find()
-    for doc in cursor:
-        print(doc)
-    cursor = Database.find()
-    for doc in cursor:
-        print(doc)
+@app.route('/api/user', methods=['GET'])
+@jwt_required()
+def retrieve_user_data():
+    username = get_jwt_identity()
+    query = {
+            "username":username
+        }
+    user_data=Database().find_one(query)
+    print(user_data)
+    user_data = json.dumps(user_data, default=str)
+    return user_data, 200
+    # return jsonify(logged_in_as=username), 200
+    
 
-test(sample)

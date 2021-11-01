@@ -22,18 +22,41 @@
 </template>
 
 <script>
+import UserService from '../services/user.service';
+
 export default {
-  name: 'Profile',
+  name: 'Portfolio',
   computed: {
     currentUser() {
-      console.log(this.$store.state.auth.user.id);
+      console.log(this.$store.state.auth.user);
+      return this.$store.state.auth.user;
+    },
+    getAccessToken() {
+      console.log(this.$store.state.auth.user);
       return this.$store.state.auth.user;
     },
   },
   mounted() {
-    if (!this.currentUser) {
+    if (this.currentUser == null) {
       this.$router.push('/login');
     }
+    const accessToken = this.getAccessToken;
+    console.log(accessToken);
+    this.getUserInfo();
+  },
+  methods: {
+    getUserInfo() {
+      UserService.getUser().then(
+        (response) => {
+          console.log(response.data);
+        },
+        (error) => {
+          this.content = (error.response && error.response.data)
+          || error.message
+          || error.toString();
+        },
+      );
+    },
   },
 };
 </script>

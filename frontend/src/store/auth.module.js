@@ -1,5 +1,6 @@
 /* eslint no-shadow: ["error", { "allow": ["user"] }] */
 /* eslint-env es6 */
+import jwtDecode from 'jwt-decode';
 import AuthService from '../services/auth.service';
 
 const user = JSON.parse(localStorage.getItem('user'));
@@ -28,7 +29,6 @@ export const auth = {
       commit('logout');
     },
     register({ commit }, user) {
-      console.log('eatass');
       return AuthService.register(user).then(
         (response) => {
           commit('registerSuccess');
@@ -39,6 +39,23 @@ export const auth = {
           return Promise.reject(error);
         },
       );
+    },
+    refreshTokens(context, credentials) {
+      // Do whatever you need to do to exchange refresh token for access token
+      AuthService.refreshToken();
+      // Finally, call autoRefresh to set up the new timeout
+      this.dispatch('autoRefresh', credentials);
+    },
+    autoRefresh(context, credentials) {
+      // const user = localStorage.getItem('user');
+      const { user, commit, dispatch } = context;
+      const { accessToken } = user.accessToken;
+      const { exp } = jwtDecode(accessToken);
+      const now = Date.now() / 1000; // exp is represented in seconds since epoch
+      let timeUntilRefresh = exp - now;
+      timeUntilRefresh -= (15 * 60); // Refresh 15 minutes before it expires
+      const refreshTask = setTimeout(() => dispatch('refreshTokens', credentials), timeUntilRefresh * 1000);
+      commit('refreshTask', refreshTask); // In case you want to cancel this task on logout
     },
   },
   mutations: {
