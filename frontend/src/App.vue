@@ -1,8 +1,12 @@
 <template>
   <div id="app">
     <Nav />
+    <div id="content-wrap">
       <router-view/>
+    </div>
+    <div id="footer">
     <Footer />
+    </div>
   </div>
 </template>
 
@@ -31,6 +35,12 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+  position: relative;
+  min-height: 100vh;
+}
+body, html{
+  margin: 0;
+  height: 100%;
 }
 
 #nav {
@@ -44,5 +54,15 @@ export default {
 
 #nav a.router-link-exact-active {
   color: #42b983;
+}
+#content-wrap{
+  min-height: 100%;
+  height: 100%;
+}
+#footer{
+  overflow:hidden;
+  height: 100%;
+  width: 100%;
+  clear: both;
 }
 </style>

@@ -17,44 +17,47 @@
         <router-link to="/learn" class="nav-link">Learn</router-link>
       </li>
     </ul>
-    <div style="margin-left: auto;">
-      Welcome, {TO BE ADDED}
+    <div id="userButton" style="margin-left: auto;">
+      <button class="btn p-3 mb-2 bg-black text-light"
+        v-if="this.$store.state.auth.status.loggedIn"
+          @click="handleLogout()">
+            Logout
+      </button>
+      <button class="btn p-3 mb-2 bg-black text-light" v-else @click="handleLogin()">Login</button>
     </div>
   </div>
 </nav>
 </template>
 
 <script>
-import axios from 'axios';
 
 export default {
   data() {
     return {
-      courses: [],
+      loggedIn: this.checkLoginStatus,
     };
   },
-  methods: {
-    getCourses() {
-      const path = 'http://localhost:5000/courses';
-      axios.get(path)
-        .then((res) => {
-          this.courses = res.data.courses;
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-    },
-    burger: () => {
-      const x = document.getElementById('myTopNav');
-      if (x.className === 'topNav') {
-        x.className += ' responsive';
-      } else {
-        x.className = 'topNav';
-      }
-    },
-  },
   created() {
-    this.getCourses();
+  },
+  computed: {
+  },
+  methods: {
+    handleLogout() {
+      this.$store.dispatch('auth/logout', this.user).then(
+        () => {
+          this.$router.push('/');
+        },
+        (error) => {
+          this.loading = false;
+          this.message = (error.response && error.response.data)
+            || error.message
+            || error.toString();
+        },
+      );
+    },
+    handleLogin() {
+      this.$router.push('/login');
+    },
   },
 };
 </script>
@@ -66,5 +69,9 @@ export default {
 }
 #topbarText a.router-link-exact-active:hover {
   color: rgb(255, 255, 255);
+}
+
+#userButton{
+  margin-right: 1%;
 }
 </style>
