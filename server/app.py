@@ -38,7 +38,7 @@ def user_registration():
     Database().insert_new_user(new_user.return_query_data())
     #if bcrypt.checkpw(data['password'].encode('utf-8'), hashed_password):
     response = jsonify({
-        'status':'successfully registered user'
+        'message':'successfully registered user'
         
     })
     return response
@@ -65,10 +65,11 @@ def login_user():
 
     return make_response('could not verify',  401, {'WWW.Authentication': 'Basic realm: "login required"'})
 
-@app.route('/refresh', methods=['POST'])
+@app.route('/refreshtoken', methods=['POST'])
 @jwt_required(refresh=True)
 def refresh():
-    current_user = get_jwt_identity()
+    print("hello")
+    current_user = get_jwt_identity() 
     ret = {
         'accessToken': create_access_token(identity=current_user)
     }

@@ -23,6 +23,7 @@
 
 <script>
 import UserService from '../services/user.service';
+import EventBus from '../common/EventBus';
 
 export default {
   name: 'Portfolio',
@@ -42,21 +43,21 @@ export default {
     }
     const accessToken = this.getAccessToken;
     console.log(accessToken);
-    this.getUserInfo();
-  },
-  methods: {
-    getUserInfo() {
-      UserService.getUser().then(
-        (response) => {
-          console.log(response.data);
-        },
-        (error) => {
-          this.content = (error.response && error.response.data)
+    UserService.getUser().then(
+      (response) => { console.log(response.data); },
+      (error) => {
+        this.content = (error.response && error.response.data && error.response.data.message)
           || error.message
           || error.toString();
-        },
-      );
-    },
+
+        if (error.response && error.response.status === 403) {
+          EventBus.dispatch('logout');
+        }
+      },
+    );
+  },
+  methods: {
+
   },
 };
 </script>
