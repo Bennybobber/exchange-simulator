@@ -29,11 +29,9 @@ export default {
   name: 'Portfolio',
   computed: {
     currentUser() {
-      console.log(this.$store.state.auth.user);
       return this.$store.state.auth.user;
     },
     getAccessToken() {
-      console.log(this.$store.state.auth.user);
       return this.$store.state.auth.user;
     },
   },
@@ -41,8 +39,6 @@ export default {
     if (this.currentUser == null) {
       this.$router.push('/login');
     }
-    const accessToken = this.getAccessToken;
-    console.log(accessToken);
     UserService.getUser().then(
       (response) => { console.log(response.data); },
       (error) => {

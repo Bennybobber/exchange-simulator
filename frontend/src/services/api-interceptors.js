@@ -1,7 +1,5 @@
 /* eslint no-underscore-dangle: 0 */
 /* eslint no-param-reassign: "error" */
-/* eslint camelcase: "error" */
-/* eslint dot-notation: ["error", { "allowPattern": "^[a-z]+(_[a-z]+)+$" }] */
 import axios from 'axios';
 import axiosInstance from './api';
 import TokenService from './token.service';
@@ -20,14 +18,12 @@ const setup = (store) => {
   );
 
   axiosInstance.interceptors.response.use(
+    // eslint-disable-next-line
     (res) => {
-      console.log('yes');
       return res;
     },
     async (err) => {
-      console.log(err);
       const originalConfig = err.config;
-      console.log(originalConfig);
       if (originalConfig.url !== '/auth/login' && err.response) {
         // Access Token was expired
         if (err.response.status === 401 && !originalConfig._retry) {
