@@ -13,6 +13,7 @@
 <script>
 import Nav from '@/components/Navbar.vue';
 import Footer from '@/components/Footer.vue';
+import EventBus from './common/EventBus';
 
 export default {
   name: 'App',
@@ -20,10 +21,24 @@ export default {
     Nav,
     Footer,
   },
+  methods: {
+    logOut() {
+      this.$store.dispatch('auth/logout');
+      this.$router.push('/login');
+    },
+  },
   data() {
     return {
       // logoURL: Logo
     };
+  },
+  mounted() {
+    EventBus.on('logout', () => {
+      this.logOut();
+    });
+  },
+  beforeDestroy() {
+    EventBus.remove('logout');
   },
 };
 </script>

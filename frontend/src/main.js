@@ -18,6 +18,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import App from './App.vue';
 import store from './store';
+import setupInterceptors from './services/api-interceptors';
 import router from './router';
 
 window.$ = JQuery;
@@ -27,6 +28,8 @@ Vue.config.productionTip = false;
 Vue.use(VeeValidate);
 Vue.component('font-awesome-icon', FontAwesomeIcon);
 library.add(faBars);
+
+setupInterceptors(store);
 
 Vue.use(BootstrapVue); // Adding the use of bootstrap to vue
 Vue.use(IconsPlugin); // Allows the use of Icons from bootstrap

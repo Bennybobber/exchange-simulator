@@ -1,4 +1,6 @@
 import axios from 'axios';
+import api from './api';
+import tokenService from './token.service';
 
 const API_URL = 'http://localhost:5000/';
 
@@ -11,7 +13,7 @@ class AuthService {
       })
       .then((response) => {
         if (response.data.accessToken) {
-          localStorage.setItem('user', JSON.stringify(response.data));
+          tokenService.setUser(response.data);
         }
 
         return response.data;
@@ -25,17 +27,16 @@ class AuthService {
 
   refreshToken() {
     const user = localStorage.getItem('user');
-    return axios.post(`${API_URL}refresh`, { headers: user.refreshToken })
+    return api.post(`${API_URL}refreshtoken`, { headers: user.refreshToken })
       .then((response) => {
         if (response.data.accessToken) {
-          localStorage.setItem('user', JSON.stringify(response.data));
-          this.$store.state.auth.user.accessToken = response.data.accessToken;
+          tokenService.updateLocalAccessToken(response.data.accessToken);
         }
       });
   }
 
   register(user) {
-    return axios.post(`${API_URL}register`, {
+    return api.post(`${API_URL}register`, {
       username: user.username,
       password: user.password,
     });

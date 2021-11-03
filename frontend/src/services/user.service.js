@@ -1,23 +1,22 @@
-import axios from 'axios';
-import authHeader from './auth-header';
+import api from './api';
 
 const API_URL = 'http://localhost:5000/api/';
 
 class UserService {
   getPublicContent() {
-    return axios.get(`${API_URL}all`);
+    return api.get(`${API_URL}all`);
   }
 
   getUser() {
-    return axios.get(`${API_URL}user`, { headers: authHeader() });
+    return api.get(`${API_URL}user`);
   }
 
   getModeratorBoard() {
-    return axios.get(`${API_URL}mod`, { headers: authHeader() });
+    return api.get(`${API_URL}mod`);
   }
 
   getAdminBoard() {
-    return axios.get(`${API_URL}admin`, { headers: authHeader() });
+    return api.get(`${API_URL}admin`);
   }
 }
 
