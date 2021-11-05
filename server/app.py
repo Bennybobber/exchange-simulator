@@ -15,6 +15,7 @@ import json
 from config import get_config
 from functions.database import Database
 from functions.User import User
+from functions import marketMethods
 
 app = Flask(__name__)
 jwt = JWTManager(app)
@@ -26,49 +27,68 @@ Database.initialize(CONFIG.DB_URI)
 
 @app.route('/register', methods=['POST'])
 def user_registration():
-    data = request.json
-    hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
-    username_exists = Database().check_username_exists(data['username'])
-    if username_exists:
+    """
+    user_registration registers a new user in the mongo database by taking username and password
+    uses bycrpyt to hash and salt the password before storing in the db.
+
+    :return: returns a response to say a user was successfully registered, the name was taken
+    or an unknown other error has occured.
+    """
+    try:
+        data = request.json
+        hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
+        username_exists = Database().check_username_exists(data['username'])
+        if username_exists:
+            response = jsonify({
+            'status':'Username already exists'
+            })
+            return response, 403
+        new_user = User(data['username'], hashed_password)
+        Database().insert_new_user(new_user.return_query_data())
         response = jsonify({
-        'status':'username already exists'
-        })
-        return response
-    new_user = User(data['username'], hashed_password)
-    Database().insert_new_user(new_user.return_query_data())
-    #if bcrypt.checkpw(data['password'].encode('utf-8'), hashed_password):
-    response = jsonify({
-        'message':'successfully registered user'
+            'message':'successfully registered user'
         
-    })
-    return response
+        })
+        return response, 201
+    except Exception as err:
+        return jsonify({'message': 'An Unknown Error Has Occured'}), 500
+
+    
 
 @app.route('/login', methods=['POST'])  
-def login_user(): 
-    auth = request.json   
-    if not auth or not auth['username'] or not auth['password']:  
-        return make_response('could not verify', 401, {'WWW.Authentication': 'Basic realm: "login required"'})    
+def login_user():
+    """
+    login_user takes in request params Username and Password and checks them against the database stored ones.
 
-    username_exists = Database().check_username_exists(auth['username'])
-    if username_exists:
-        if bcrypt.checkpw(auth['password'].encode('utf-8'), Database().retrieve_hashed_password(auth['username'])):  
-            # token = jwt.encode({
-            #     'public_id': auth['username'],
-            #     'iat':datetime.datetime.utcnow(),
-            #     'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30)},
-            #     app.config['SECRET_KEY'])
-            ret = {
-                'accessToken': create_access_token(identity=auth['username']),
-                'refreshToken': create_refresh_token(identity=auth['username']),
-            }  
-            return jsonify(ret), 200 
+    :return: returns a response to say a user was successfully logged in, that the credentials could not be
+    verified or an unknown other error has occured.
+    """
+    try: 
+        auth = request.json   
+        if not auth or not auth['username'] or not auth['password']:  
+            return make_response('could not verify', 401, {'WWW.Authentication': 'Basic realm: "login required"'})    
 
-    return make_response('could not verify',  401, {'WWW.Authentication': 'Basic realm: "login required"'})
-
+        username_exists = Database().check_username_exists(auth['username'])
+        if username_exists:
+            if bcrypt.checkpw(auth['password'].encode('utf-8'), Database().retrieve_hashed_password(auth['username'])):  
+                ret = {
+                    'accessToken': create_access_token(identity=auth['username']),
+                    'refreshToken': create_refresh_token(identity=auth['username']),
+                }  
+                return jsonify(ret), 200 
+    except Exception as err:
+        return make_response('could not verify',  401, {'WWW.Authentication': 'Basic realm: "login required"'})
+    
 @app.route('/refreshtoken', methods=['POST'])
 @jwt_required(refresh=True)
 def refresh():
-    print("hello")
+    """
+    refresh checks the incoming authorization header for a valid refresh token and then returns a new access
+    token to the user.
+
+    :return: returns new access token, or an 401 for an invalid token
+
+    """
     current_user = get_jwt_identity() 
     ret = {
         'accessToken': create_access_token(identity=current_user)
@@ -77,35 +97,51 @@ def refresh():
 
 @app.route('/api/market', methods=['GET'])
 def top_ten_markets():
-    url = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd"
+    """
+    top_ten_markets does an API GET request to the coingecko PUBLIC API to retrieve the markets
+    and filters out the to the top 10. 
+
+    :return: Returns a dictionary of the top 10 cryptocurrnecy markets, or a 500 error for an
+    unknown error.
+
+    """
     try:
-        response = requests.get(url)
-        response.raise_for_status()
         #Return the top 10 markets
         response = jsonify({
         'status': 'success',
-        'markets': response.json()[:CONFIG.TOP_CURRENCY_COUNT]
+        'markets': marketMethods.getTradablePairs()[:CONFIG.TOP_CURRENCY_COUNT]
         })
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        return response
+        return response, 200
     except HTTPError as http_err:
         print(f'HTTPS error occured: {http_err}')
-        return http_err
+        return http_err, 500
     except Exception as err:
         print(f'An Error Occured: {err}')
-        return err
+        return jsonify({'message': 'An Unknown Error Has Occured'}), 500
 
 @app.route('/api/user', methods=['GET'])
 @jwt_required()
 def retrieve_user_data():
-    username = get_jwt_identity()
-    query = {
-            "username":username
-        }
-    user_data=Database().find_one(query)
-    print(user_data)
-    user_data = json.dumps(user_data, default=str)
-    return user_data, 200
-    # return jsonify(logged_in_as=username), 200
+    """
+    retrieve_user_data calls a function in the Database module to retrieve the users details
+    for their portfolio page. 
+
+    :return: Returns a dictionary of the users information, a 401 error if they're not authorized
+    and a 500 if an unknown error has occured.
+
+    """
+    try:
+        username = get_jwt_identity()
+        user_data=Database().retrieve_user_portfolio(username)
+        user_data = json.dumps(user_data, default=str)
+        return user_data, 200
+    except Exception as err:
+        return jsonify({'message': 'An Unknown Error Has Occured'}), 500
     
+@app.route('/api/pairs', methods=['GET'])
+def retrieve_binance_pairs():
+    try:
+        return jsonify({"coins": marketMethods.getTradablePairs()}), 200
+    except Exception as err:
+        return jsonify({'message': 'An Unknown Error Has Occured'}), 500 
 

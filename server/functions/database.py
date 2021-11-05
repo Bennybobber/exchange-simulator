@@ -55,3 +55,11 @@ class Database(object):
         }
         name_query = Database().DATABASE[Database.user_collection].find_one(query)
         return name_query['password']
+
+    @staticmethod
+    def retrieve_user_portfolio(username):
+        query = {
+            "username": username
+        }
+        user_portfolio = Database().DATABASE[Database.user_collection].find_one(query, {'password': 0})
+        return user_portfolio

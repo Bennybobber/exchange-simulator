@@ -54,7 +54,8 @@
       "object-shorthand": 0,
       "import/prefer-default-export": "off",
       "class-methods-use-this": "off",
-      "dot-notation": 0
+      "dot-notation": 0,
+      "linebreak-style": 0
     }
   },
   "browserslist": [
