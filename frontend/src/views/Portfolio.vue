@@ -9,6 +9,19 @@
             ${{userData.balance}}
         </p>
     </div>
+     <h1>Portfolio Break Down</h1>
+     <div class='pieCharts'>
+        <div class='chart'>
+          <h4>Makeup by assets worth $USD</h4>
+          <pie-chart :data="pieAssetMakeup">
+          </pie-chart>
+        </div>
+        <div class='chart'>
+          <h4>Makeup by assets owned $USD</h4>
+          <pie-chart :data="pieAssetMakeup">
+          </pie-chart>
+        </div>
+    </div>
     <div class='assetTable'>
       <table class="table">
         <thead class="thead-dark">
@@ -33,14 +46,6 @@
         </tbody>
       </table>
       </div>
-    <p>
-      <strong>Id:</strong>
-      {{currentUser.id}}
-    </p>
-    <strong>Authorities:</strong>
-    <ul>
-      <li v-for="(role,index) in currentUser.roles" :key="index">{{role}}</li>
-    </ul>
   </div>
 </template>
 
@@ -54,6 +59,8 @@ export default {
     return {
       userData: {},
       rowData: {},
+      pieAssetMakeup: [['USD', '100000']],
+      pieValueMakeup: [['USD', '100000']],
     };
   },
   computed: {
@@ -116,5 +123,14 @@ export default {
 }
 .balance{
   margin-left: auto;
+}
+.pieCharts{
+  width: 100%;
+  border-style: solid;
+  display:flex;
+}
+.chart{
+  margin: auto;
+  padding: 1%;
 }
 </style>
