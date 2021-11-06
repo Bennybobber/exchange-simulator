@@ -16,11 +16,14 @@ import {
   faSignOutAlt,
   faBars,
 } from '@fortawesome/free-solid-svg-icons';
+import Chartkick from 'vue-chartkick';
+import Chart from 'chart.js/auto';
 import App from './App.vue';
 import store from './store';
 import setupInterceptors from './services/api-interceptors';
 import router from './router';
 
+Vue.use(Chartkick.use(Chart));
 window.$ = JQuery;
 library.add(faHome, faUser, faUserPlus, faSignInAlt, faSignOutAlt);
 

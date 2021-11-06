@@ -39,7 +39,7 @@ export const auth = {
         },
       );
     },
-    refreshTokens({ commit }, accessToken) {
+    refreshToken({ commit }, accessToken) {
       // Do whatever you need to do to exchange refresh token for access token
       commit('refreshToken', accessToken);
       // Finally, call autoRefresh to set up the new timeout

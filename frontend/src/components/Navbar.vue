@@ -11,7 +11,7 @@
         <router-link to="/portfolio" class="nav-link">Portfolio</router-link>
       </li>
       <li class="nav-item">
-        <router-link to="/trade" class="nav-link">Trade</router-link>
+        <router-link to="/trade?coin=BTC" class="nav-link">Trade</router-link>
       </li>
       <li class="nav-item">
         <router-link to="/learn" class="nav-link">Learn</router-link>

@@ -51,11 +51,11 @@ export default {
   text-align: center;
   color: #2c3e50;
   position: relative;
-  min-height: 100vh;
 }
 body, html{
   margin: 0;
   height: 100%;
+  width: 100%;
 }
 
 #nav {
