@@ -29,7 +29,7 @@
       <td><b>$</b>{{ row.currentPrice }}</td>
       <td><b>$</b>{{ row.day_high}}</td>
       <td :style=setPercentageColour(row.day_percentage_change)>{{ row.day_percentage_change}}%</td>
-      <td> <a :href="'http://localhost:8080/api/trade?coin=' + row.currencySymbol">Trade</a></td>
+      <td><router-link :to='"/trade/"+ row.currencySymbol' class="nav-link">Trade</router-link></td>
     </tr>
   </tbody>
 </table>
