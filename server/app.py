@@ -1,5 +1,7 @@
 from flask import Flask, jsonify, request, make_response
 import requests
+import time
+from binance import ThreadedWebsocketManager 
 
 from flask_cors import CORS
 import pymongo
@@ -17,6 +19,7 @@ from functions.database import Database
 from functions.User import User
 from functions import marketMethods
 
+
 app = Flask(__name__)
 jwt = JWTManager(app)
 app.config['SECRET_KEY']='Th1s1ss3cr3t'
@@ -24,6 +27,8 @@ CORS(app)
 CONFIG = get_config()
 client = pymongo.MongoClient(CONFIG.DB_URI)
 Database.initialize(CONFIG.DB_URI)
+api_key = CONFIG.BINANCE_API_KEY
+api_secret = CONFIG.BINANCE_API_SECRET
 
 @app.route('/register', methods=['POST'])
 def user_registration():
@@ -145,3 +150,30 @@ def retrieve_binance_pairs():
     except Exception as err:
         return jsonify({'message': 'An Unknown Error Has Occured'}), 500 
 
+
+@app.route('/api/coins', methods=['GET'])
+def start_websocket():
+    try:
+        symbolz = request.json
+        print(symbolz)
+        symbol = 'BTCUSDT'
+        twm = ThreadedWebsocketManager(api_key=api_key, api_secret=api_secret)
+        # start is required to initialise its internal loop
+        twm.start()
+        def handle_socket_message(msg):
+            print(f"message type: {msg['e']}")
+            print(msg)
+        # twm.start_kline_socket(callback=handle_socket_message, symbol=symbol)
+
+        # multiple sockets can be started
+        # twm.start_depth_socket(callback=handle_socket_message, symbol=symbol)
+
+        # or a multiplex socket can be started like this
+        # see Binance docs for stream names
+        # streams = ['bnbbtc@miniTicker', 'bnbbtc@bookTicker']
+        # twm.start_multiplex_socket(callback=handle_socket_message, streams=streams)
+
+        # twm.join()
+        return jsonify({"Coin": "egg"})
+    except Exception as err:
+        return jsonify(err)
