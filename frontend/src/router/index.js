@@ -22,7 +22,7 @@ const routes = [
     component: Register,
   },
   {
-    path: '/trade/:coin',
+    path: '/trade/:coin/:name',
     component: Trade,
   },
   {

@@ -10,14 +10,6 @@ class UserService {
   getUser() {
     return api.get(`${API_URL}user`);
   }
-
-  getModeratorBoard() {
-    return api.get(`${API_URL}mod`);
-  }
-
-  getAdminBoard() {
-    return api.get(`${API_URL}admin`);
-  }
 }
 
 export default new UserService();

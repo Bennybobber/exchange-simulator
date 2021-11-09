@@ -1,7 +1,6 @@
 from flask import Flask, jsonify, request, make_response
 import requests
 import time
-from binance import ThreadedWebsocketManager 
 
 from flask_cors import CORS
 import pymongo
@@ -27,8 +26,7 @@ CORS(app)
 CONFIG = get_config()
 client = pymongo.MongoClient(CONFIG.DB_URI)
 Database.initialize(CONFIG.DB_URI)
-api_key = CONFIG.BINANCE_API_KEY
-api_secret = CONFIG.BINANCE_API_SECRET
+api_key = CONFIG.COIN_API_KEY
 
 @app.route('/register', methods=['POST'])
 def user_registration():
@@ -150,30 +148,18 @@ def retrieve_binance_pairs():
     except Exception as err:
         return jsonify({'message': 'An Unknown Error Has Occured'}), 500 
 
-
-@app.route('/api/coins', methods=['GET'])
-def start_websocket():
+@app.route('/api/coin/info', methods=['GET'])
+def get_coin_information():
     try:
-        symbolz = request.json
-        print(symbolz)
-        symbol = 'BTCUSDT'
-        twm = ThreadedWebsocketManager(api_key=api_key, api_secret=api_secret)
-        # start is required to initialise its internal loop
-        twm.start()
-        def handle_socket_message(msg):
-            print(f"message type: {msg['e']}")
-            print(msg)
-        # twm.start_kline_socket(callback=handle_socket_message, symbol=symbol)
-
-        # multiple sockets can be started
-        # twm.start_depth_socket(callback=handle_socket_message, symbol=symbol)
-
-        # or a multiplex socket can be started like this
-        # see Binance docs for stream names
-        # streams = ['bnbbtc@miniTicker', 'bnbbtc@bookTicker']
-        # twm.start_multiplex_socket(callback=handle_socket_message, streams=streams)
-
-        # twm.join()
-        return jsonify({"Coin": "egg"})
+        data = marketMethods.specific_coin(request.args.get('symbol'))
+        return jsonify(data), 200
     except Exception as err:
-        return jsonify(err)
+        return jsonify({'error': err}), 500
+@app.route('/api/coin/history', methods=['GET'])
+def get_coin_history():
+    try:
+        data = marketMethods.get_coin_history(request.args.get('coin'), request.args.get('interval'))
+        return data, 200
+    except Exception as err:
+        print(err)
+        return jsonify({'error': err}), 500
