@@ -7,7 +7,13 @@ class UserService {
     return api.get(`${API_URL}all`);
   }
 
+  updateUser(userData) {
+    console.log('attempting to update...');
+    return api.post(`${API_URL}user`, { data: userData });
+  }
+
   getUser() {
+    console.log('getting user...');
     return api.get(`${API_URL}user`);
   }
 }

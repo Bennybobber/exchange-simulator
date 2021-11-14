@@ -42,9 +42,8 @@ def filterPairs(coinGeckoPairs, binancePairs):
     try:
         for item in coinGeckoPairs:  
             for coin in binancePairs:
-            
                 if(item['symbol'].upper() == coin['symbol']):
-                    coin['image'] = item['image']
+                    """ coin['image'] = item['image']
                     coin['high_24h'] = item['high_24h']
                     coin['price_change_percentage_24h'] = item['price_change_percentage_24h']
                     coin['market_cap_rank'] = item['market_cap_rank']
@@ -53,7 +52,9 @@ def filterPairs(coinGeckoPairs, binancePairs):
                     coin.pop('rank', None)
                     coin.pop('marketCapUsd', None)
                     coin.pop('priceUsd', None)
-                    filteredPairs.append(coin)
+                    filteredPairs.append(coin) """
+                    item['id'] = coin['id']
+                    filteredPairs.append(item)
                     break
         filteredPairs.sort(key=sort_by_marketcap)
         return filteredPairs
@@ -61,10 +62,15 @@ def filterPairs(coinGeckoPairs, binancePairs):
         print('error')
         print(err)
 
-def specific_coin(coin):
-    url = f"https://api.coincap.io/v2/assets/{coin}"
-    response = requests.get(url)
-    return response.json()
+def specific_coin(symbol):
+    coingecko = getCoinGeckoCoins()
+    for coin in coingecko:
+        if coin['symbol'] == symbol.lower():
+            print(coin)
+            return coin
+    return False
+   
+    
 
 def get_coin_history(coin, interval):
     try:
@@ -73,8 +79,6 @@ def get_coin_history(coin, interval):
         }
         url = f"https://api.coincap.io/v2/candles?exchange=binance&interval={interval}&baseId={coin}&quoteId=tether"
         response = requests.get(url, headers)
-        print('PRINTING RESPONSE....')
-        print(response.status_code)
         if (response.status_code == 429):
             return response
         return response.json()

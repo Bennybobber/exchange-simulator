@@ -122,7 +122,7 @@ def top_ten_markets():
         print(f'An Error Occured: {err}')
         return jsonify({'message': 'An Unknown Error Has Occured'}), 500
 
-@app.route('/api/user', methods=['GET'])
+@app.route('/api/user', methods=['GET','POST'])
 @jwt_required()
 def retrieve_user_data():
     """
@@ -133,13 +133,24 @@ def retrieve_user_data():
     and a 500 if an unknown error has occured.
 
     """
-    try:
-        username = get_jwt_identity()
-        user_data=Database().retrieve_user_portfolio(username)
-        user_data = json.dumps(user_data, default=str)
-        return user_data, 200
-    except Exception as err:
-        return jsonify({'message': 'An Unknown Error Has Occured'}), 500
+    if request.method == 'GET':
+        try:
+            username = get_jwt_identity()
+            user_data=Database().retrieve_user_portfolio(username)
+            user_data = json.dumps(user_data, default=str)
+            return user_data, 200
+        except Exception as err:
+            return jsonify({'message': 'An Unknown Error Has Occured'}), 500
+    if request.method == 'POST':
+        print('Posting to user...')
+        try:
+            data = request.json
+            print(data)
+            Database().update_user(data['data'])
+            return jsonify({'message':'Successful Trade'}), 200
+        except Exception as err:
+            print(err)
+            return jsonify({'message': 'An Unknown Error Has Occured'}), 500
     
 @app.route('/api/pairs', methods=['GET'])
 def retrieve_binance_pairs():
@@ -152,6 +163,8 @@ def retrieve_binance_pairs():
 def get_coin_information():
     try:
         data = marketMethods.specific_coin(request.args.get('symbol'))
+        if data == False:
+            return jsonify({'message': 'Coin was not found'}), 404
         return jsonify(data), 200
     except Exception as err:
         return jsonify({'error': err}), 500
@@ -163,3 +176,4 @@ def get_coin_history():
     except Exception as err:
         print(err)
         return jsonify({'error': err}), 500
+

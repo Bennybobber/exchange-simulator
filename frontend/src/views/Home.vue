@@ -59,7 +59,7 @@ export default {
   },
   data() {
     return {
-      currentID: '',
+      currencyID: '',
       currencyName: '',
       currencyImg: '',
       currencySymbol: '',

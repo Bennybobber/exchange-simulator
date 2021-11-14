@@ -1,9 +1,27 @@
 <template>
 <div>
-  <div class='coinInformation'>
-    <h1>Currency: {{ this.$route.params.coin }} </h1>
-    <p> Latest Price: ${{ currentPrice }} </p>
-  </div>
+    <table class="table table-bordered table-dark">
+      <thead>
+        <tr>
+          <th scope="col">{{this.$route.params.coin}}/USD</th>
+          <th scope="col">Price</th>
+          <th scope="col">24h Change</th>
+          <th scope="col">24h Low</th>
+          <th scope="col">24h High</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">{{ this.coinData.id }}</th>
+          <td>${{ currentPrice }}</td>
+          <td :style=setPercentageColour(this.coinData.price_change_percentage_24h)>
+            {{ this.coinData.price_change_percentage_24h.toPrecision(3) }}%
+          </td>
+          <td>{{ this.coinData.low_24h }}</td>
+          <td>{{ this.coinData.high_24h }}</td>
+        </tr>
+      </tbody>
+    </table>
   <div class='tradeChart'>
     <trading-vue :data="this.$data" :width="this.width" :height="this.height"
         :title-txt="`${this.$route.params.coin}USD`"
@@ -11,13 +29,25 @@
     </trading-vue>
     </div>
   <div class='tradePanel'>
-    <div id='sellForm' class='panel'>
-      <input class="form-control" type="text" placeholder="Amount to Sell">
-    <button type="button" class="btn btn-success">Sell</button>
-    </div>
-    <div id='buyForm' class='panel'>
-      <input class="form-control" type="text" placeholder="Amount to Buy">
-      <button type="button" class="btn btn-danger">Buy</button>
+    <h1> USD Balance: {{ this.userBalance }} </h1>
+    <h1> {{ this.$route.params.coin }} Balance: {{ this.assetBalance }} </h1>
+    <div class='panel'>
+      <h1> 1 {{ this.$route.params.coin }} = ${{ currentPrice }} </h1>
+        <div class='inputForm'>
+          <input v-on:input="updateAmount()" v-model='amount' class="form-control"
+            @keypress='isNumber($event)'
+            type="text"
+            placeholder="Amount to Buy">
+          <div>
+            Total Cost: {{ this.totals }}
+        </div>
+      </div>
+      <button @click="executeBuy(Number(amount), Number(totals))"
+        type="button" class="btn btn-danger">
+          Buy</button>
+      <button @click="executeSell(Number(amount), Number(totals))"
+        type="button" class="btn btn-success">
+          Sell</button>
     </div>
   </div>
 </div>
@@ -26,6 +56,8 @@
 <script>
 import axios from 'axios';
 import TradingVue from 'trading-vue-js';
+import UserService from '../services/user.service';
+import EventBus from '../common/EventBus';
 
 export default {
   components: {
@@ -33,9 +65,15 @@ export default {
   },
   data() {
     return {
+      userData: {
+      },
+      coinData: {},
+      UsdBalance: 0,
       loggedIn: 'arg',
       connection: null,
       price: null,
+      amount: 0,
+      totalCost: 0,
       width: window.innerWidth * 0.75,
       height: window.innerHeight * 0.75,
       ohlcv: [
@@ -49,7 +87,6 @@ export default {
       },
       set: function (newPrice) {
         this.price = newPrice;
-        // this.ohlcv.at(-1).at(-2) = parseFloat(newPrice);
       },
     },
     chart: {
@@ -68,8 +105,33 @@ export default {
         this.ohlcv[this.ohlcv.length - 1][4] = parseFloat(latestPrice);
       },
     },
+    userBalance: {
+      get: function () {
+        return this.UsdBalance;
+      },
+      set: function (blanace) {
+        this.UsdBalance = blanace;
+      },
+    },
+    assetBalance: {
+      get: function () {
+        return this.userData.assets[this.$route.params.coin];
+      },
+      set: function (assetBalance) {
+        this.userData.assets[this.$route.params.coin] = assetBalance;
+      },
+    },
+    totals: {
+      get: function () {
+        return this.totalCost;
+      },
+      set: function (amount) {
+        this.totalCost = amount;
+      },
+    },
   },
   created() {
+    this.fetchUser();
     this.retrieveCandlesticks();
     this.retrieveCoinInformation();
     this.loggedIn = this.$route.query.page;
@@ -81,8 +143,8 @@ export default {
       this.currentPrice = price[this.$route.params.name];
       this.latestChartPrice = price[this.$route.params.name];
       this.chart = this.latestChartPrice;
+      this.updateAmount();
     };
-    this.check();
     this.connection.onopen = function (event) {
       console.log(event);
       console.log('successfully connected to the websocket server...');
@@ -106,10 +168,11 @@ export default {
       axios({
         method: 'get',
         url: 'http://localhost:5000/api/coin/info',
-        params: { symbol: this.$route.params.name },
+        params: { symbol: this.$route.params.coin },
       })
         .then((response) => {
-          this.currentPrice = Number(response.data.data.priceUsd).toFixed(2);
+          this.currentPrice = Number(response.data.priceUsd).toFixed(2);
+          this.coinData = response.data;
         })
         .catch((error) => {
           console.log(error);
@@ -130,6 +193,90 @@ export default {
       });
       return completeList;
     },
+    fetchUser() {
+      UserService.getUser().then(
+        (response) => {
+          this.userData = response.data;
+          this.UsdBalance = response.data.balance;
+          if (this.userData.assets[this.$route.params.coin] === undefined) this.assetBalance = 0;
+        },
+        (error) => {
+          this.content = (error.response && error.response.data && error.response.data.message)
+            || error.message
+            || error.toString();
+
+          if (error.response && error.response.status === 403) {
+            EventBus.dispatch('logout');
+          }
+        },
+      );
+    },
+    setPercentageColour(percentage) {
+      if (percentage == null) return '';
+      const color = (String(percentage).includes('-')) ? 'red' : 'green';
+      return `color: ${color}`;
+    },
+    executeBuy(amount, total) {
+      console.log(this.userBalance);
+      if (this.userBalance >= total) {
+        console.log('can afford to buy');
+        this.userBalance -= total;
+        this.userData.trades.push({
+          trade_time: new Date().getTime(),
+          type: 'buy',
+          asset: this.$route.params.coin,
+          amount: amount,
+          usd_cost: total,
+          asset_cost: total / amount,
+        });
+        this.assetBalance += amount;
+        this.updateDatabase();
+      }
+      this.amount = 0;
+    },
+    executeSell(amount, total) {
+      if (this.assetBalance >= amount) {
+        this.userBalance += total;
+        this.userData.trades.push({
+          trade_time: new Date().getTime(),
+          type: 'sell',
+          asset: this.$route.params.coin,
+          amount: amount,
+          usd_cost: total,
+          asset_cost: total / amount,
+        });
+        this.assetBalance -= amount;
+        this.updateDatabase();
+      }
+      this.amount = 0;
+    },
+    updateAmount() {
+      this.totals = this.amount * this.currentPrice;
+    },
+    updateDatabase() {
+      console.log('Started updateDatabase()');
+      this.userData.balance = this.userBalance;
+      UserService.updateUser(this.userData).then(
+        (response) => { console.log(response); },
+        (error) => {
+          this.content = (error.response && error.response.data && error.response.data.message)
+          || error.message
+          || error.toString();
+
+          if (error.response && error.response.status === 403) {
+            EventBus.dispatch('logout');
+          }
+        },
+      );
+    },
+    isNumber(inputEvent) {
+      const event = inputEvent || window.event;
+      const charCode = (event.which) ? event.which : event.keyCode;
+      if ((charCode > 31 && (charCode < 48 || charCode > 57)) && charCode !== 46) {
+        event.preventDefault();
+      }
+      if (String(this.amount).includes('.') && charCode === 46) event.preventDefault();
+    },
   },
   beforeRouteLeave(to, from, next) {
     // called when the route that renders this component is about to
@@ -144,14 +291,38 @@ export default {
 </script>
 <style scoped>
 .tradePanel{
-  display:flex;
   margin:auto;
+  width: 75%;
+  padding: 3%;
+}
+.tradePanel h1{
+  display:inline;
+  padding: 5%;
 }
 .panel{
+  display:inline-block;
+  width:100%;
+  margin:auto;
+  padding:2%;
+  border-style: solid;
+}
+.panel h1{
+  display: inline-block;
+  margin: auto;
+}
+.panel button{
+  width: 100px;
+  height: 50px;
+  margin: 1%;
+}
+.inputPanel{
+  display:flex;
+}
+.inputForm{
   display:flex;
   width:50%;
   margin:auto;
-  padding:2%;
+  padding:1%;
 }
 .tradeChart{
   margin:auto;
@@ -159,5 +330,11 @@ export default {
 }
 .trading-vue{
   margin:auto;
+}
+.coinInformation{
+  text-align: left;
+  width: 75.5%;
+  margin:auto;
+  border-style: solid;
 }
 </style>
