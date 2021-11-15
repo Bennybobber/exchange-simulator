@@ -2,22 +2,28 @@
   <div class="container">
     <div class='profileBanner'>
         <h3>
-          <strong>{{userData.username}}</strong> Portfolio
+          <strong>{{userData.username}}'s</strong> Portfolio
         </h3>
+        <div class='balances'>
           <p class='balance'>
-            <strong>Balance:</strong>
+            <strong>USD Balance:</strong>
             ${{userData.balance}}
-        </p>
+          </p>
+          <p>
+            <strong>Portfolio Worth ($USD): </strong>
+            ${{getPortfolioWorth}}
+          </p>
+        </div>
     </div>
      <h1>Portfolio Break Down</h1>
      <div class='pieCharts'>
         <div class='chart'>
           <h4>Makeup by assets worth $USD</h4>
-          <pie-chart :data="pieAssetMakeup">
+          <pie-chart :data="pieValueMakeup">
           </pie-chart>
         </div>
         <div class='chart'>
-          <h4>Makeup by assets owned $USD</h4>
+          <h4>Makeup by assets owned</h4>
           <pie-chart :data="pieAssetMakeup">
           </pie-chart>
         </div>
@@ -35,13 +41,12 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row in marketRowData" :key="row.currencyName">
-            <th scope="row"> {{ row.rank }}</th>
+          <tr v-for="row in rowData" :key="row.currencyName">
+            <th scope="row"> {{ row.currencyName }}</th>
             <td><img :src="row.currencyImg"> <b> {{ row.currencySymbol}} </b></td>
-            <td>{{ row.currencyName }}</td>
-            <td><b>$</b>{{ row.mCap }}</td>
+            <td>{{ row.amountOwned }}</td>
             <td><b>$</b>{{ row.currentPrice }}</td>
-            <td> <a :href="'http://localhost:8080/api/trade?coin=' + row.currencySymbol">Trade</a></td>
+            <td><b>$</b>{{ row.totalWorth }}</td>
           </tr>
         </tbody>
       </table>
@@ -50,6 +55,7 @@
 </template>
 
 <script>
+import axios from 'axios';
 import UserService from '../services/user.service';
 import EventBus from '../common/EventBus';
 
@@ -58,9 +64,10 @@ export default {
   data() {
     return {
       userData: {},
-      rowData: {},
       pieAssetMakeup: [['USD', '100000']],
       pieValueMakeup: [['USD', '100000']],
+      portfolioWorth: 0,
+      rowData: [],
     };
   },
   computed: {
@@ -69,6 +76,25 @@ export default {
     },
     getAccessToken() {
       return this.$store.state.auth.user;
+    },
+    getPortfolioWorth() {
+      return this.portfolioWorth;
+    },
+    assetPie: {
+      get: function () {
+        return this.pieAssetMakeup;
+      },
+      set: function (assetPie) {
+        this.pieAssetMakeup = assetPie;
+      },
+    },
+    valuePie: {
+      get: function () {
+        return this.pieValueMakeup;
+      },
+      set: function (assetPie) {
+        this.pieValueMakeup = assetPie;
+      },
     },
   },
   mounted() {
@@ -90,16 +116,51 @@ export default {
   },
   methods: {
     setupPortfolio(userData) {
-      console.log(userData);
       this.userData = userData;
-      if (Object.keys(userData.assets).length === 0) {
-        console.log('No Assets Currently Owned');
-      }
-      const assetPrices = this.getAssetsPrice(userData);
+      const assetValue = [];
+      const assetWorth = [];
+      console.log('setting up...');
+      axios({
+        method: 'get',
+        url: 'http://localhost:5000/api/market',
+      })
+        .then((response) => {
+          if (Object.keys(userData.assets).length !== 0) {
+            Object.keys(userData.assets).forEach((key) => {
+              console.log(`${key}: ${userData.assets[key]}`);
+              if (userData.assets[key] !== 0) {
+                assetValue.push([key, userData.assets[key]]);
+                response.data.markets.forEach((crypto) => {
+                  if (crypto.symbol.toUpperCase() === key) {
+                    assetWorth.push([key, crypto.current_price]);
+                    this.portfolioWorth += (crypto.current_price * Number(userData.assets[key]));
+                    this.populateOwnedTable(userData.assets[key], crypto);
+                  }
+                });
+              }
+            });
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+      this.valuePie = assetWorth;
+      this.assetPie = assetValue;
+      const assetPrices = this.getAssetsPrice(userData.assets);
       this.populateAssetTable(assetPrices);
     },
-    getAssetsPrice(userAssets) {
-      return userAssets;
+    populateOwnedTable(assetAmount, marketData) {
+      console.log(assetAmount);
+      console.log(marketData);
+      const row = {
+        currencyName: marketData.name,
+        currencyImg: marketData.image,
+        currencySymbol: marketData.symbol,
+        amountOwned: assetAmount,
+        currentPrice: marketData.current_price,
+        totalWorth: (marketData.current_price * assetAmount),
+      };
+      this.rowData.push(row);
     },
     populateAssetTable(userAssets) {
       return userAssets;
@@ -121,8 +182,9 @@ export default {
   height: 100%;
   background-color: lavender;
 }
-.balance{
+.balances{
   margin-left: auto;
+  text-align: left;
 }
 .pieCharts{
   width: 100%;
@@ -132,5 +194,12 @@ export default {
 .chart{
   margin: auto;
   padding: 1%;
+}
+td img{
+  width: 15%;
+  margin: 1%;
+}
+td p{
+  font-weight: bold;
 }
 </style>

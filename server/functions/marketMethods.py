@@ -18,7 +18,7 @@ def getBinancePairs():
         response = requests.get(url, headers)
         print(response.status_code)
         if (response.status_code == 429):
-            return
+           raise Exception('Public API Failure')
         coins = response.json()['data']
         return coins 
     except Exception as err:

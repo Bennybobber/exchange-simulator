@@ -1,5 +1,5 @@
 <template>
-<div>
+<div id='tradeScreen'>
     <table class="table table-bordered table-dark">
       <thead>
         <tr>
@@ -48,8 +48,16 @@
       <button @click="executeSell(Number(amount), Number(totals))"
         type="button" class="btn btn-success">
           Sell</button>
+      <button
+        type="button"
+        class="btn"
+        @click="showModal"
+        >
+        Open Modal!
+      </button>
     </div>
   </div>
+
 </div>
 </template>
 
@@ -219,34 +227,38 @@ export default {
     executeBuy(amount, total) {
       console.log(this.userBalance);
       if (this.userBalance >= total) {
-        console.log('can afford to buy');
-        this.userBalance -= total;
-        this.userData.trades.push({
-          trade_time: new Date().getTime(),
-          type: 'buy',
-          asset: this.$route.params.coin,
-          amount: amount,
-          usd_cost: total,
-          asset_cost: total / amount,
-        });
-        this.assetBalance += amount;
-        this.updateDatabase();
+        if (window.confirm('Are you sure you want to execute this sell?')) {
+          console.log('can afford to buy');
+          this.userBalance -= total;
+          this.userData.trades.push({
+            trade_time: new Date().getTime(),
+            type: 'buy',
+            asset: this.$route.params.coin,
+            amount: amount,
+            usd_cost: total,
+            asset_cost: total / amount,
+          });
+          this.assetBalance += amount;
+          this.updateDatabase();
+        }
       }
       this.amount = 0;
     },
     executeSell(amount, total) {
       if (this.assetBalance >= amount) {
-        this.userBalance += total;
-        this.userData.trades.push({
-          trade_time: new Date().getTime(),
-          type: 'sell',
-          asset: this.$route.params.coin,
-          amount: amount,
-          usd_cost: total,
-          asset_cost: total / amount,
-        });
-        this.assetBalance -= amount;
-        this.updateDatabase();
+        if (window.confirm('Are you sure you want to execute this sell?')) {
+          this.userBalance += total;
+          this.userData.trades.push({
+            trade_time: new Date().getTime(),
+            type: 'sell',
+            asset: this.$route.params.coin,
+            amount: amount,
+            usd_cost: total,
+            asset_cost: total / amount,
+          });
+          this.assetBalance -= amount;
+          this.updateDatabase();
+        }
       }
       this.amount = 0;
     },
@@ -277,6 +289,12 @@ export default {
       }
       if (String(this.amount).includes('.') && charCode === 46) event.preventDefault();
     },
+    showModal() {
+      this.isModalVisible = true;
+    },
+    closeModal() {
+      this.isModalVisible = false;
+    },
   },
   beforeRouteLeave(to, from, next) {
     // called when the route that renders this component is about to
@@ -291,6 +309,7 @@ export default {
 </script>
 <style scoped>
 .tradePanel{
+  color:white;
   margin:auto;
   width: 75%;
   padding: 3%;
@@ -331,10 +350,7 @@ export default {
 .trading-vue{
   margin:auto;
 }
-.coinInformation{
-  text-align: left;
-  width: 75.5%;
-  margin:auto;
-  border-style: solid;
+#tradeScreen{
+  background-color: rgb(41, 39, 39);
 }
 </style>

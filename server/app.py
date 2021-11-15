@@ -112,7 +112,7 @@ def top_ten_markets():
         #Return the top 10 markets
         response = jsonify({
         'status': 'success',
-        'markets': marketMethods.getTradablePairs()[:CONFIG.TOP_CURRENCY_COUNT]
+        'markets': marketMethods.getTradablePairs()
         })
         return response, 200
     except HTTPError as http_err:
