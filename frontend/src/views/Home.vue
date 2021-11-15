@@ -29,7 +29,16 @@
       <td><b>$</b>{{ row.currentPrice }}</td>
       <td><b>$</b>{{ row.day_high}}</td>
       <td :style=setPercentageColour(row.day_percentage_change)>{{ row.day_percentage_change}}%</td>
-      <td> <a :href="'http://localhost:8080/api/trade?coin=' + row.currencySymbol">Trade</a></td>
+      <td>
+          <p v-if="row.currencySymbol == 'USDC' || row.currencySymbol == 'USDT'" >
+            Unable To Trade
+          </p>
+          <router-link v-else
+            :to='"/trade/"+ row.currencySymbol + "/"+ row.currencyID'
+            class="nav-link">
+              Trade
+          </router-link>
+        </td>
     </tr>
   </tbody>
 </table>
@@ -50,6 +59,7 @@ export default {
   },
   data() {
     return {
+      currencyID: '',
       currencyName: '',
       currencyImg: '',
       currencySymbol: '',
@@ -85,7 +95,8 @@ export default {
     extractData(marketData) {
       Object.keys(marketData).forEach((key) => {
         const row = {
-          currencyName: marketData[key].id,
+          currencyID: marketData[key].id,
+          currencyName: marketData[key].name,
           currencyImg: marketData[key].image,
           currencySymbol: marketData[key].symbol.toUpperCase(),
           currentPrice: marketData[key].current_price,
@@ -96,6 +107,7 @@ export default {
         };
         this.marketRowData.push(row);
 
+        this.currencyID = '';
         this.currencyName = '';
         this.currencyImg = '';
         this.currencySymbol = '';

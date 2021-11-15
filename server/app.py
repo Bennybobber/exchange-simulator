@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request, make_response
 import requests
+import time
 
 from flask_cors import CORS
 import pymongo
@@ -17,6 +18,7 @@ from functions.database import Database
 from functions.User import User
 from functions import marketMethods
 
+
 app = Flask(__name__)
 jwt = JWTManager(app)
 app.config['SECRET_KEY']='Th1s1ss3cr3t'
@@ -24,6 +26,7 @@ CORS(app)
 CONFIG = get_config()
 client = pymongo.MongoClient(CONFIG.DB_URI)
 Database.initialize(CONFIG.DB_URI)
+api_key = CONFIG.COIN_API_KEY
 
 @app.route('/register', methods=['POST'])
 def user_registration():
@@ -109,7 +112,7 @@ def top_ten_markets():
         #Return the top 10 markets
         response = jsonify({
         'status': 'success',
-        'markets': marketMethods.getTradablePairs()[:CONFIG.TOP_CURRENCY_COUNT]
+        'markets': marketMethods.getTradablePairs()
         })
         return response, 200
     except HTTPError as http_err:
@@ -119,7 +122,7 @@ def top_ten_markets():
         print(f'An Error Occured: {err}')
         return jsonify({'message': 'An Unknown Error Has Occured'}), 500
 
-@app.route('/api/user', methods=['GET'])
+@app.route('/api/user', methods=['GET','POST'])
 @jwt_required()
 def retrieve_user_data():
     """
@@ -130,13 +133,24 @@ def retrieve_user_data():
     and a 500 if an unknown error has occured.
 
     """
-    try:
-        username = get_jwt_identity()
-        user_data=Database().retrieve_user_portfolio(username)
-        user_data = json.dumps(user_data, default=str)
-        return user_data, 200
-    except Exception as err:
-        return jsonify({'message': 'An Unknown Error Has Occured'}), 500
+    if request.method == 'GET':
+        try:
+            username = get_jwt_identity()
+            user_data=Database().retrieve_user_portfolio(username)
+            user_data = json.dumps(user_data, default=str)
+            return user_data, 200
+        except Exception as err:
+            return jsonify({'message': 'An Unknown Error Has Occured'}), 500
+    if request.method == 'POST':
+        print('Posting to user...')
+        try:
+            data = request.json
+            print(data)
+            Database().update_user(data['data'])
+            return jsonify({'message':'Successful Trade'}), 200
+        except Exception as err:
+            print(err)
+            return jsonify({'message': 'An Unknown Error Has Occured'}), 500
     
 @app.route('/api/pairs', methods=['GET'])
 def retrieve_binance_pairs():
@@ -144,4 +158,22 @@ def retrieve_binance_pairs():
         return jsonify({"coins": marketMethods.getTradablePairs()}), 200
     except Exception as err:
         return jsonify({'message': 'An Unknown Error Has Occured'}), 500 
+
+@app.route('/api/coin/info', methods=['GET'])
+def get_coin_information():
+    try:
+        data = marketMethods.specific_coin(request.args.get('symbol'))
+        if data == False:
+            return jsonify({'message': 'Coin was not found'}), 404
+        return jsonify(data), 200
+    except Exception as err:
+        return jsonify({'error': err}), 500
+@app.route('/api/coin/history', methods=['GET'])
+def get_coin_history():
+    try:
+        data = marketMethods.get_coin_history(request.args.get('coin'), request.args.get('interval'))
+        return data, 200
+    except Exception as err:
+        print(err)
+        return jsonify({'error': err}), 500
 
