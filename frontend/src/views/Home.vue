@@ -12,7 +12,7 @@
     <tr>
       <th scope="col">Rank #</th>
       <th scope="col">Symbol</th>
-      <th scope="col">Currency Name</th>
+      <th @click="sort('name')" scope="col">Currency Name</th>
       <th scope="col">Market Capitalisation</th>
       <th scope="col">Current Price (USD) </th>
       <th scope="col">24hr Price High</th>
@@ -21,7 +21,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr v-for="row in marketRowData" :key="row.currencyName">
+    <tr v-for="row in sortedCurrencies" :key="row.currencyName">
       <th scope="row"> {{ row.rank }}</th>
       <td><img :src="row.currencyImg"> <b> {{ row.currencySymbol}} </b></td>
       <td>{{ row.currencyName }}</td>
@@ -42,7 +42,10 @@
     </tr>
   </tbody>
 </table>
-
+  <div>
+    <button @click="prevPage">Previous</button>
+    <button @click="nextPage">Next</button>
+  </div>
   </div>
 
 </template>
@@ -69,7 +72,21 @@ export default {
       mCap: '',
       rank: '',
       marketRowData: [],
+      currentSort: 'name',
+      currentSortDir: 'asc',
+      pageSize: 10,
+      currentPage: 1,
     };
+  },
+  computed: {
+    sortedCurrencies: function () {
+      return this.updatePage();
+    },
+    tableRow: {
+      get: function () {
+        return this.marketRowData;
+      },
+    },
   },
   created() {
     axios({
@@ -117,6 +134,34 @@ export default {
         this.mCap = '';
         this.rank = '';
       });
+    },
+    updatePage: function () {
+      console.log('haha update page...');
+      return this.marketRowData.sort((a, b) => {
+        let modifier = 1;
+        if (this.currentSortDir === 'desc') modifier = -1;
+        if (a[this.currentSort] < b[this.currentSort]) return -1 * modifier;
+        if (a[this.currentSort] > b[this.currentSort]) return 1 * modifier;
+        return 0;
+      }).filter((row, index) => {
+        const start = (this.currentPage - 1) * this.pageSize;
+        const end = this.currentPage * this.pageSize;
+        if (index >= start && index < end) return true;
+        return false;
+      });
+    },
+    nextPage: function () {
+      if ((this.currentPage * this.pageSize) < this.marketRowData.length) this.currentPage += 1;
+    },
+    prevPage: function () {
+      if (this.currentPage > 1) this.currentPage -= 1;
+    },
+    sort: function (s) {
+      //  if s == current sort, reverse
+      if (s === this.currentSort) {
+        this.currentSortDir = this.currentSortDir === 'asc' ? 'desc' : 'asc';
+      }
+      this.currentSort = s;
     },
     setPercentageColour(percentage) {
       const color = (percentage.includes('-')) ? 'red' : 'green';

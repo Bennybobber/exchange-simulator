@@ -68,6 +68,8 @@ export default {
       pieValueMakeup: [['USD', '100000']],
       portfolioWorth: 0,
       rowData: [],
+      page: 1,
+      perPage: 10,
     };
   },
   computed: {
