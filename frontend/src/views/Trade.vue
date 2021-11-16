@@ -179,7 +179,7 @@ export default {
         params: { symbol: this.$route.params.coin },
       })
         .then((response) => {
-          this.currentPrice = Number(response.data.priceUsd).toFixed(2);
+          this.currentPrice = Number(response.data.current_price).toFixed(2);
           this.coinData = response.data;
         })
         .catch((error) => {
