@@ -38,11 +38,11 @@
       <table class="table">
         <thead>
           <tr>
-            <th scope="col">Currency Name</th>
-            <th scope="col">Symbol</th>
-            <th scope="col">Amount Owned</th>
-            <th scope="col">Current Price</th>
-            <th scope="col">Total Worth (USD)</th>
+            <th @click="assetSort('currencyName')" scope="col">Currency Name</th>
+            <th @click="assetSort('currencySymbol')" scope="col">Symbol</th>
+            <th @click="assetSort('amountOwned')" scope="col">Amount Owned</th>
+            <th @click="assetSort('currentPrice')" scope="col">Current Price</th>
+            <th @click="assetSort('totalWorth')" scope="col">Total Worth (USD)</th>
           </tr>
         </thead>
         <tbody>
@@ -66,12 +66,12 @@
       <table class="table">
         <thead>
           <tr>
-            <th scope="col">Trade Date</th>
-            <th scope="col">Trade Type</th>
-            <th scope="col">Asset</th>
-            <th scope="col">Amount Traded</th>
-            <th scope="col">Total Worth (USD)</th>
-            <th scope="col">Asset Worth At Time</th>
+            <th @click="sort('trade_time')" scope="col">Trade Date</th>
+            <th @click="sort('type')" scope="col">Trade Type</th>
+            <th @click="sort('asset')" scope="col">Asset</th>
+            <th @click="sort('amount')" scope="col">Amount Traded</th>
+            <th @click="sort('usd_cost')" scope="col">Total Worth (USD)</th>
+            <th @click="sort('asset_cost')" scope="col">Asset Worth At Time</th>
           </tr>
         </thead>
         <tbody>
@@ -79,7 +79,7 @@
             <th scope="row">
               {{ new Date(row.trade_time) }}
             </th>
-            <td><b> {{ row.type}} </b></td>
+            <td :style=setTradeColour(row.type)><b> {{ row.type}} </b></td>
             <td>{{ row.asset }}</td>
             <td>{{ row.amount }}</td>
             <td><b>$</b>{{ row.usd_cost }}</td>
@@ -120,6 +120,10 @@ export default {
       currentAssetPage: 1,
       currentTradePage: 1,
       pageSize: 10,
+      currentSort: 'trade_time',
+      currentSortDir: 'asc',
+      currentAssetSortDir: 'desc',
+      currentAssetSort: 'amountOwned',
     };
   },
   computed: {
@@ -225,9 +229,9 @@ export default {
     updateAssetPage: function () {
       return this.rowData.sort((a, b) => {
         let modifier = 1;
-        if (this.currentSortDir === 'desc') modifier = -1;
-        if (a[this.currentSort] < b[this.currentSort]) return -1 * modifier;
-        if (a[this.currentSort] > b[this.currentSort]) return 1 * modifier;
+        if (this.currentAssetSortDir === 'desc') modifier = -1;
+        if (a[this.currentAssetSort] < b[this.currentAssetSort]) return -1 * modifier;
+        if (a[this.currentAssetSort] > b[this.currentAssetSort]) return 1 * modifier;
         return 0;
       }).filter((row, index) => {
         const start = (this.currentAssetPage - 1) * this.pageSize;
@@ -250,6 +254,21 @@ export default {
         return false;
       });
     },
+    sort: function (s) {
+      // if s == current sort, reverse
+      if (s === this.currentSort) {
+        this.currentSortDir = this.currentSortDir === 'asc' ? 'desc' : 'asc';
+      }
+      this.currentSort = s;
+    },
+    assetSort: function (s) {
+      // if s == current sort, reverse
+      console.log('Hewwo');
+      if (s === this.currentAssetSort) {
+        this.currentAssetSortDir = this.currentAssetSortDir === 'asc' ? 'desc' : 'asc';
+      }
+      this.currentAssetSort = s;
+    },
     nextAssetPage: function () {
       if ((this.currentAssetPage * this.pageSize) < this.rowData.length) this.currentAssetPage += 1;
     },
@@ -263,6 +282,10 @@ export default {
     },
     prevTradePage: function () {
       if (this.currentTradePage > 1) this.currentTradePage -= 1;
+    },
+    setTradeColour: function (tradeType) {
+      const color = (tradeType.includes('sell')) ? 'red' : 'green';
+      return `color: ${color}`;
     },
     resetProfile: function () {
       if (window.confirm('Are you sure you want to RESET your profile?')) {
@@ -351,6 +374,9 @@ td, tr{
 table thead{
   background-color: black;
   color: white;
+}
+th {
+  cursor:pointer;
 }
 .divider{
     width:5px;
