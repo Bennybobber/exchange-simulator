@@ -42,9 +42,10 @@
     </tr>
   </tbody>
 </table>
-  <div>
-    <button @click="prevPage">Previous</button>
-    <button @click="nextPage">Next</button>
+  <div  v-if="this.marketRowData.length >= 10" class="navButtons">
+    <button @click="prevPage" class="btn btn-dark">Previous</button>
+    <div class="divider"/>
+    <button @click="nextPage" class="btn btn-dark">Next</button>
   </div>
   </div>
 
@@ -62,15 +63,6 @@ export default {
   },
   data() {
     return {
-      currencyID: '',
-      currencyName: '',
-      currencyImg: '',
-      currencySymbol: '',
-      currentPrice: '',
-      day_high: '',
-      day_percentage_change: '',
-      mCap: '',
-      rank: '',
       marketRowData: [],
       currentSort: 'name',
       currentSortDir: 'asc',
@@ -123,16 +115,6 @@ export default {
           rank: marketData[key].market_cap_rank,
         };
         this.marketRowData.push(row);
-
-        this.currencyID = '';
-        this.currencyName = '';
-        this.currencyImg = '';
-        this.currencySymbol = '';
-        this.currentPrice = '';
-        this.day_high = '';
-        this.day_percentage_change = '';
-        this.mCap = '';
-        this.rank = '';
       });
     },
     updatePage: function () {
@@ -196,5 +178,17 @@ td p{
 }
 td {
   margin: auto;
+}
+.navButtons {
+  padding: 1%;
+  margin:auto;
+}
+.navButtons button{
+  padding: 1%;
+}
+.divider{
+    width:5px;
+    height:auto;
+    display:inline-block;
 }
 </style>

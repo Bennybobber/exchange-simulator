@@ -15,7 +15,7 @@
           <th scope="row">{{ this.coinData.id }}</th>
           <td>${{ currentPrice }}</td>
           <td :style=setPercentageColour(this.coinData.price_change_percentage_24h)>
-            {{ this.coinData.price_change_percentage_24h.toPrecision(3) }}%
+            {{ this.coinData.price_change_percentage_24h.toFixed(2) }}%
           </td>
           <td>{{ this.coinData.low_24h }}</td>
           <td>{{ this.coinData.high_24h }}</td>

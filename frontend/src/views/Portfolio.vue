@@ -7,7 +7,7 @@
         <div class='balances'>
           <p class='balance'>
             <strong>USD Balance:</strong>
-            ${{userData.balance}}
+            ${{userData.balance.toFixed(2)}}
           </p>
           <p>
             <strong>Portfolio Worth ($USD): </strong>
@@ -15,8 +15,9 @@
           </p>
         </div>
     </div>
-     <h1>Portfolio Break Down</h1>
+    <div class='mainContent'>
      <div class='pieCharts'>
+       <h1>Portfolio Break Down</h1>
         <div class='chart'>
           <h4>Makeup by assets worth $USD</h4>
           <pie-chart :data="pieValueMakeup">
@@ -28,20 +29,21 @@
           </pie-chart>
         </div>
     </div>
+    <div class='tables'>
     <div class='assetTable'>
+      <h1> Assets Owned </h1>
       <table class="table">
-        <thead class="thead-dark">
+        <thead>
           <tr>
             <th scope="col">Currency Name</th>
             <th scope="col">Symbol</th>
             <th scope="col">Amount Owned</th>
             <th scope="col">Current Price</th>
             <th scope="col">Total Worth (USD)</th>
-            <th scope="col"></th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row in rowData" :key="row.currencyName">
+          <tr v-for="row in sortedCurrencies" :key="row.currencyName">
             <th scope="row"> {{ row.currencyName }}</th>
             <td><img :src="row.currencyImg"> <b> {{ row.currencySymbol}} </b></td>
             <td>{{ row.amountOwned }}</td>
@@ -50,7 +52,46 @@
           </tr>
         </tbody>
       </table>
+      <div v-if="this.rowData.length <= 10" class="navButtons">
+        <button @click="prevAssetPage" class="btn btn-dark">Previous</button>
+        <div class="divider"/>
+        <button @click="nextAssetPage" class="btn btn-dark">Next</button>
+        </div>
       </div>
+      <div class="divider"/>
+      <h1> Recent Trades </h1>
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Trade Date</th>
+            <th scope="col">Trade Type</th>
+            <th scope="col">Asset</th>
+            <th scope="col">Amount Traded</th>
+            <th scope="col">Total Worth (USD)</th>
+            <th scope="col">Asset Worth At Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="row in sortedTrades" :key="row.trade_time">
+            <th scope="row">
+              {{ new Date(row.trade_time) }}
+            </th>
+            <td><b> {{ row.type}} </b></td>
+            <td>{{ row.asset }}</td>
+            <td>{{ row.amount }}</td>
+            <td><b>$</b>{{ row.usd_cost }}</td>
+            <td><b>$</b>{{ row.asset_cost }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div v-if="this.tradeRowData.length >= 10" class="navButtons">
+        <button @click="prevTradePage" class="btn btn-dark">Previous</button>
+        <div class="divider"/>
+        <button @click="nextTradePage" class="btn btn-dark">Next</button>
+      </div>
+      <div class="divider"/>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -64,15 +105,23 @@ export default {
   data() {
     return {
       userData: {},
-      pieAssetMakeup: [['USD', '100000']],
-      pieValueMakeup: [['USD', '100000']],
+      pieAssetMakeup: [[]],
+      pieValueMakeup: [[]],
       portfolioWorth: 0,
       rowData: [],
-      page: 1,
-      perPage: 10,
+      tradeRowData: [],
+      currentAssetPage: 1,
+      currentTradePage: 1,
+      pageSize: 10,
     };
   },
   computed: {
+    sortedCurrencies: function () {
+      return this.updateAssetPage();
+    },
+    sortedTrades: function () {
+      return this.updateTradePage();
+    },
     currentUser() {
       return this.$store.state.auth.user;
     },
@@ -80,7 +129,7 @@ export default {
       return this.$store.state.auth.user;
     },
     getPortfolioWorth() {
-      return this.portfolioWorth;
+      return this.portfolioWorth.toFixed(2);
     },
     assetPie: {
       get: function () {
@@ -148,12 +197,12 @@ export default {
         });
       this.valuePie = assetWorth;
       this.assetPie = assetValue;
-      const assetPrices = this.getAssetsPrice(userData.assets);
-      this.populateAssetTable(assetPrices);
+      this.populateRecentTrades();
+    },
+    populateRecentTrades() {
+      this.tradeRowData = this.userData.trades;
     },
     populateOwnedTable(assetAmount, marketData) {
-      console.log(assetAmount);
-      console.log(marketData);
       const row = {
         currencyName: marketData.name,
         currencyImg: marketData.image,
@@ -164,34 +213,92 @@ export default {
       };
       this.rowData.push(row);
     },
-    populateAssetTable(userAssets) {
-      return userAssets;
+    updateAssetPage: function () {
+      console.log('haha update page...');
+      return this.rowData.sort((a, b) => {
+        let modifier = 1;
+        if (this.currentSortDir === 'desc') modifier = -1;
+        if (a[this.currentSort] < b[this.currentSort]) return -1 * modifier;
+        if (a[this.currentSort] > b[this.currentSort]) return 1 * modifier;
+        return 0;
+      }).filter((row, index) => {
+        const start = (this.currentAssetPage - 1) * this.pageSize;
+        const end = this.currentAssetPage * this.pageSize;
+        if (index >= start && index < end) return true;
+        return false;
+      });
+    },
+    updateTradePage: function () {
+      console.log('haha update page...');
+      return this.tradeRowData.sort((a, b) => {
+        let modifier = 1;
+        if (this.currentSortDir === 'desc') modifier = -1;
+        if (a[this.currentSort] < b[this.currentSort]) return -1 * modifier;
+        if (a[this.currentSort] > b[this.currentSort]) return 1 * modifier;
+        return 0;
+      }).filter((row, index) => {
+        const start = (this.currentTradePage - 1) * this.pageSize;
+        const end = this.currentTradePage * this.pageSize;
+        if (index >= start && index < end) return true;
+        return false;
+      });
+    },
+    nextAssetPage: function () {
+      if ((this.currentAssetPage * this.pageSize) < this.rowData.length) this.currentAssetPage += 1;
+    },
+    prevAssetPage: function () {
+      if (this.currentAssetPage > 1) this.currentAssetPage -= 1;
+    },
+    nextTradePage: function () {
+      if ((this.currentTradePage * this.pageSize) < this.tradeRowData.length) {
+        this.currentTradePage += 1;
+      }
+    },
+    prevTradePage: function () {
+      if (this.currentTradePage > 1) this.currentTradePage -= 1;
     },
   },
 };
 </script>
 
 <style scoped>
+.mainContent{
+  display: flex;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+.tables{
+  width: 100%;
+  border-bottom: solid;
+  border-right: solid;
+  border-top: solid;
+  padding: 1%;
+}
 .profileBanner{
-  box-sizing: border-box;
-  margin: 0px;
   min-width: 0px;
   display:flex;
-  flex-flow: row wrap;
+  border-style: solid;
+  width: 100%;
+  padding: 1%;
+  background-color: black;
+  color: white;
+  border-color: #0d6efd;
 }
 .container{
-  width: 100%;
-  height: 100%;
+  min-width: 100%;
   background-color: lavender;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 .balances{
   margin-left: auto;
   text-align: left;
 }
 .pieCharts{
-  width: 100%;
+  width: 25%;
   border-style: solid;
-  display:flex;
+  display:block;
 }
 .chart{
   margin: auto;
@@ -203,5 +310,18 @@ td img{
 }
 td p{
   font-weight: bold;
+}
+td, tr{
+  border:solid;
+  border-color: black;
+}
+table thead{
+  background-color: black;
+  color: white;
+}
+.divider{
+    width:5px;
+    height:auto;
+    display:inline-block;
 }
 </style>

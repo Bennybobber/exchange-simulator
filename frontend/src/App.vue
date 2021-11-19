@@ -72,7 +72,6 @@ body, html{
 }
 #content-wrap{
   min-height: 100%;
-  height: 100%;
 }
 #footer{
   overflow:hidden;
