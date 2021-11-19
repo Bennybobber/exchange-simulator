@@ -118,7 +118,7 @@ export default {
       });
     },
     updatePage: function () {
-      console.log('haha update page...');
+      // Sorts the table, as well as paginates the table.
       return this.marketRowData.sort((a, b) => {
         let modifier = 1;
         if (this.currentSortDir === 'desc') modifier = -1;
@@ -133,9 +133,11 @@ export default {
       });
     },
     nextPage: function () {
+      // Moves to the next page in the table
       if ((this.currentPage * this.pageSize) < this.marketRowData.length) this.currentPage += 1;
     },
     prevPage: function () {
+      // Moves to the previous page in the table
       if (this.currentPage > 1) this.currentPage -= 1;
     },
     sort: function (s) {
