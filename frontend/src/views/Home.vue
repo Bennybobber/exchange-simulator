@@ -10,13 +10,13 @@
   <table class="table">
   <thead class="thead-dark">
     <tr>
-      <th scope="col">Rank #</th>
-      <th scope="col">Symbol</th>
-      <th @click="sort('name')" scope="col">Currency Name</th>
-      <th scope="col">Market Capitalisation</th>
-      <th scope="col">Current Price (USD) </th>
-      <th scope="col">24hr Price High</th>
-      <th scope="col">Percentage Change 24hr</th>
+      <th @click="sort('rank')" scope="col">Rank #</th>
+      <th @click="sort('currencySymbol')" scope="col">Symbol</th>
+      <th @click="sort('currencyName')" scope="col">Currency Name</th>
+      <th @click="sort('mCap')" scope="col">Market Capitalisation</th>
+      <th @click="sort('currentPrice')" scope="col">Current Price (USD) </th>
+      <th @click="sort('day_high')" scope="col">24hr Price High</th>
+      <th @click="sort('day_percentage_change')" scope="col">Percentage Change 24hr</th>
       <th scope="col"></th>
     </tr>
   </thead>
@@ -190,5 +190,8 @@ td {
     width:5px;
     height:auto;
     display:inline-block;
+}
+th {
+  cursor:pointer;
 }
 </style>
