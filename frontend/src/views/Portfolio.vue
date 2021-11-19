@@ -1,9 +1,12 @@
 <template>
   <div class="container">
     <div class='profileBanner'>
+      <div class='profileHeading'>
         <h3>
           <strong>{{userData.username}}'s</strong> Portfolio
         </h3>
+        <button  @click="resetProfile" class="btn btn-danger"> Reset Profile</button>
+      </div>
         <div class='balances'>
           <p class='balance'>
             <strong>USD Balance:</strong>
@@ -104,7 +107,11 @@ export default {
   name: 'Portfolio',
   data() {
     return {
-      userData: {},
+      userData: {
+        balance: 10000,
+        assets: {},
+        trades: [],
+      },
       pieAssetMakeup: [[]],
       pieValueMakeup: [[]],
       portfolioWorth: 0,
@@ -152,25 +159,28 @@ export default {
     if (this.currentUser == null) {
       this.$router.push('/login');
     }
-    UserService.getUser().then(
-      (response) => { this.setupPortfolio(response.data); },
-      (error) => {
-        this.content = (error.response && error.response.data && error.response.data.message)
-          || error.message
-          || error.toString();
-
-        if (error.response && error.response.status === 403) {
-          EventBus.dispatch('logout');
-        }
-      },
-    );
+    this.getUser();
   },
   methods: {
+    getUser() {
+      UserService.getUser().then(
+        (response) => { this.setupPortfolio(response.data); },
+        (error) => {
+          this.content = (error.response && error.response.data && error.response.data.message)
+            || error.message
+            || error.toString();
+
+          if (error.response && error.response.status === 403) {
+            EventBus.dispatch('logout');
+          }
+        },
+      );
+    },
     setupPortfolio(userData) {
       this.userData = userData;
       const assetValue = [];
       const assetWorth = [];
-      console.log('setting up...');
+      this.rowData = [];
       axios({
         method: 'get',
         url: 'http://localhost:5000/api/market',
@@ -178,7 +188,6 @@ export default {
         .then((response) => {
           if (Object.keys(userData.assets).length !== 0) {
             Object.keys(userData.assets).forEach((key) => {
-              console.log(`${key}: ${userData.assets[key]}`);
               if (userData.assets[key] !== 0) {
                 assetValue.push([key, userData.assets[key]]);
                 response.data.markets.forEach((crypto) => {
@@ -214,7 +223,6 @@ export default {
       this.rowData.push(row);
     },
     updateAssetPage: function () {
-      console.log('haha update page...');
       return this.rowData.sort((a, b) => {
         let modifier = 1;
         if (this.currentSortDir === 'desc') modifier = -1;
@@ -229,7 +237,6 @@ export default {
       });
     },
     updateTradePage: function () {
-      console.log('haha update page...');
       return this.tradeRowData.sort((a, b) => {
         let modifier = 1;
         if (this.currentSortDir === 'desc') modifier = -1;
@@ -256,6 +263,28 @@ export default {
     },
     prevTradePage: function () {
       if (this.currentTradePage > 1) this.currentTradePage -= 1;
+    },
+    resetProfile: function () {
+      if (window.confirm('Are you sure you want to RESET your profile?')) {
+        this.userData.assets = {};
+        this.userData.trades = [];
+        this.userData.balance = 100000;
+        UserService.updateUser(this.userData).then(
+          (response) => {
+            console.log(response);
+            this.getUser();
+          },
+          (error) => {
+            this.content = (error.response && error.response.data && error.response.data.message)
+            || error.message
+            || error.toString();
+
+            if (error.response && error.response.status === 403) {
+              EventBus.dispatch('logout');
+            }
+          },
+        );
+      }
     },
   },
 };
@@ -284,6 +313,10 @@ export default {
   background-color: black;
   color: white;
   border-color: #0d6efd;
+}
+.profileBanner button{
+  height: 50%;
+  display: flex;
 }
 .container{
   min-width: 100%;
