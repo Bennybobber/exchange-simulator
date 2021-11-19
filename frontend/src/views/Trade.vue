@@ -15,7 +15,7 @@
           <th scope="row">{{ this.coinData.id }}</th>
           <td>${{ currentPrice }}</td>
           <td :style=setPercentageColour(this.coinData.price_change_percentage_24h)>
-            {{ this.coinData.price_change_percentage_24h.toPrecision(3) }}%
+            {{ this.coinData.price_change_percentage_24h.toFixed(2) }}%
           </td>
           <td>{{ this.coinData.low_24h }}</td>
           <td>{{ this.coinData.high_24h }}</td>
@@ -48,13 +48,6 @@
       <button @click="executeSell(Number(amount), Number(totals))"
         type="button" class="btn btn-success">
           Sell</button>
-      <button
-        type="button"
-        class="btn"
-        @click="showModal"
-        >
-        Open Modal!
-      </button>
     </div>
   </div>
 
@@ -74,6 +67,9 @@ export default {
   data() {
     return {
       userData: {
+        blanace: 0,
+        assets: { [this.$route.params.coin]: 0 },
+        trades: [],
       },
       coinData: {},
       UsdBalance: 0,
@@ -143,7 +139,6 @@ export default {
     this.retrieveCandlesticks();
     this.retrieveCoinInformation();
     this.loggedIn = this.$route.query.page;
-    console.log('Setting Up New Websocket Connection');
     this.connection = new WebSocket(`wss://ws.coincap.io/prices?assets=${this.$route.params.name}`);
 
     this.connection.onmessage = (event) => {
@@ -155,7 +150,6 @@ export default {
     };
     this.connection.onopen = function (event) {
       console.log(event);
-      console.log('successfully connected to the websocket server...');
     };
   },
   methods: {
@@ -179,7 +173,7 @@ export default {
         params: { symbol: this.$route.params.coin },
       })
         .then((response) => {
-          this.currentPrice = Number(response.data.priceUsd).toFixed(2);
+          this.currentPrice = Number(response.data.current_price).toFixed(2);
           this.coinData = response.data;
         })
         .catch((error) => {
@@ -206,7 +200,9 @@ export default {
         (response) => {
           this.userData = response.data;
           this.UsdBalance = response.data.balance;
-          if (this.userData.assets[this.$route.params.coin] === undefined) this.assetBalance = 0;
+          if (this.userData.assets[this.$route.params.coin] === undefined) {
+            this.$set(this.userData.assets, this.$route.params.coin, 0);
+          }
         },
         (error) => {
           this.content = (error.response && error.response.data && error.response.data.message)
@@ -225,10 +221,8 @@ export default {
       return `color: ${color}`;
     },
     executeBuy(amount, total) {
-      console.log(this.userBalance);
-      if (this.userBalance >= total) {
+      if (this.userBalance >= total && amount !== 0) {
         if (window.confirm('Are you sure you want to execute this sell?')) {
-          console.log('can afford to buy');
           this.userBalance -= total;
           this.userData.trades.push({
             trade_time: new Date().getTime(),
@@ -245,7 +239,7 @@ export default {
       this.amount = 0;
     },
     executeSell(amount, total) {
-      if (this.assetBalance >= amount) {
+      if (this.assetBalance >= amount && amount !== 0) {
         if (window.confirm('Are you sure you want to execute this sell?')) {
           this.userBalance += total;
           this.userData.trades.push({
@@ -266,7 +260,6 @@ export default {
       this.totals = this.amount * this.currentPrice;
     },
     updateDatabase() {
-      console.log('Started updateDatabase()');
       this.userData.balance = this.userBalance;
       UserService.updateUser(this.userData).then(
         (response) => { console.log(response); },

@@ -10,18 +10,18 @@
   <table class="table">
   <thead class="thead-dark">
     <tr>
-      <th scope="col">Rank #</th>
-      <th scope="col">Symbol</th>
-      <th scope="col">Currency Name</th>
-      <th scope="col">Market Capitalisation</th>
-      <th scope="col">Current Price (USD) </th>
-      <th scope="col">24hr Price High</th>
-      <th scope="col">Percentage Change 24hr</th>
+      <th @click="sort('rank')" scope="col">Rank #</th>
+      <th @click="sort('currencySymbol')" scope="col">Symbol</th>
+      <th @click="sort('currencyName')" scope="col">Currency Name</th>
+      <th @click="sort('mCap')" scope="col">Market Capitalisation</th>
+      <th @click="sort('currentPrice')" scope="col">Current Price (USD) </th>
+      <th @click="sort('day_high')" scope="col">24hr Price High</th>
+      <th @click="sort('day_percentage_change')" scope="col">Percentage Change 24hr</th>
       <th scope="col"></th>
     </tr>
   </thead>
   <tbody>
-    <tr v-for="row in marketRowData" :key="row.currencyName">
+    <tr v-for="row in sortedCurrencies" :key="row.currencyName">
       <th scope="row"> {{ row.rank }}</th>
       <td><img :src="row.currencyImg"> <b> {{ row.currencySymbol}} </b></td>
       <td>{{ row.currencyName }}</td>
@@ -42,7 +42,11 @@
     </tr>
   </tbody>
 </table>
-
+  <div  v-if="this.marketRowData.length >= 10" class="navButtons">
+    <button @click="prevPage" class="btn btn-dark">Previous</button>
+    <div class="divider"/>
+    <button @click="nextPage" class="btn btn-dark">Next</button>
+  </div>
   </div>
 
 </template>
@@ -59,17 +63,22 @@ export default {
   },
   data() {
     return {
-      currencyID: '',
-      currencyName: '',
-      currencyImg: '',
-      currencySymbol: '',
-      currentPrice: '',
-      day_high: '',
-      day_percentage_change: '',
-      mCap: '',
-      rank: '',
       marketRowData: [],
+      currentSort: 'name',
+      currentSortDir: 'asc',
+      pageSize: 10,
+      currentPage: 1,
     };
+  },
+  computed: {
+    sortedCurrencies: function () {
+      return this.updatePage();
+    },
+    tableRow: {
+      get: function () {
+        return this.marketRowData;
+      },
+    },
   },
   created() {
     axios({
@@ -106,17 +115,37 @@ export default {
           rank: marketData[key].market_cap_rank,
         };
         this.marketRowData.push(row);
-
-        this.currencyID = '';
-        this.currencyName = '';
-        this.currencyImg = '';
-        this.currencySymbol = '';
-        this.currentPrice = '';
-        this.day_high = '';
-        this.day_percentage_change = '';
-        this.mCap = '';
-        this.rank = '';
       });
+    },
+    updatePage: function () {
+      // Sorts the table, as well as paginates the table.
+      return this.marketRowData.sort((a, b) => {
+        let modifier = 1;
+        if (this.currentSortDir === 'desc') modifier = -1;
+        if (a[this.currentSort] < b[this.currentSort]) return -1 * modifier;
+        if (a[this.currentSort] > b[this.currentSort]) return 1 * modifier;
+        return 0;
+      }).filter((row, index) => {
+        const start = (this.currentPage - 1) * this.pageSize;
+        const end = this.currentPage * this.pageSize;
+        if (index >= start && index < end) return true;
+        return false;
+      });
+    },
+    nextPage: function () {
+      // Moves to the next page in the table
+      if ((this.currentPage * this.pageSize) < this.marketRowData.length) this.currentPage += 1;
+    },
+    prevPage: function () {
+      // Moves to the previous page in the table
+      if (this.currentPage > 1) this.currentPage -= 1;
+    },
+    sort: function (s) {
+      //  if s == current sort, reverse
+      if (s === this.currentSort) {
+        this.currentSortDir = this.currentSortDir === 'asc' ? 'desc' : 'asc';
+      }
+      this.currentSort = s;
     },
     setPercentageColour(percentage) {
       const color = (percentage.includes('-')) ? 'red' : 'green';
@@ -151,5 +180,20 @@ td p{
 }
 td {
   margin: auto;
+}
+.navButtons {
+  padding: 1%;
+  margin:auto;
+}
+.navButtons button{
+  padding: 1%;
+}
+.divider{
+    width:5px;
+    height:auto;
+    display:inline-block;
+}
+th {
+  cursor:pointer;
 }
 </style>
