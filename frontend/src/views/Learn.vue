@@ -93,7 +93,11 @@
 
 <script>
 // Importing the Hooper component to use as a slide show for the tutorial
-import { Hooper, Slide, Navigation as HooperNavigation } from 'hooper';
+import {
+  Hooper,
+  Slide,
+  Navigation as HooperNavigation,
+} from 'hooper';
 import 'hooper/dist/hooper.css';
 
 export default {
@@ -127,6 +131,8 @@ export default {
 }
 #tutorial {
   border-bottom: solid;
+  border-top: solid;
+  margin-top: 2%;
 }
 .mainContent{
   width: 80%;
@@ -144,8 +150,9 @@ export default {
   padding: 1%;
 }
 .topHeading h1{
-  background-color: rgb(20, 20, 20);
+  background-color: rgb(226, 109, 0);
   padding: 1%;
+  border-radius: 25px;
 }
 .jumbotron{
   width: 100%;
@@ -171,5 +178,13 @@ p {
    font-size: large;
    width: 50%;
    margin:auto;
+}
+@media only screen and (max-width: 600px) {
+.mainContent{
+  width: 100%;
+}
+.tutImage{
+  width: 100%;
+}
 }
 </style>

@@ -35,6 +35,7 @@
     <div class='tables'>
     <div class='assetTable'>
       <h1> Assets Owned </h1>
+      <div class="table-responsive">
       <table class="table">
         <thead>
           <tr>
@@ -55,7 +56,8 @@
           </tr>
         </tbody>
       </table>
-      <div v-if="this.rowData.length <= 10" class="navButtons">
+      </div>
+      <div v-if="this.rowData.length >= 10" class="navButtons">
         <button @click="prevAssetPage" class="btn btn-dark">Previous</button>
         <div class="divider"/>
         <button @click="nextAssetPage" class="btn btn-dark">Next</button>
@@ -63,6 +65,7 @@
       </div>
       <div class="divider"/>
       <h1> Recent Trades </h1>
+      <div class="table-responsive">
       <table class="table">
         <thead>
           <tr>
@@ -87,6 +90,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
       <div v-if="this.tradeRowData.length >= 10" class="navButtons">
         <button @click="prevTradePage" class="btn btn-dark">Previous</button>
         <div class="divider"/>
@@ -385,5 +389,25 @@ th {
 }
 tr{
   vertical-align: middle;
+}
+@media only screen and (max-width: 600px) {
+.mainContent{
+  width: 100%;
+  display: block;
+}
+.pieCharts{
+  width: 100%;
+}
+.profileBanner{
+  padding: 10%;
+  display: block;
+}
+.profileBanner h3{
+  text-align: left;
+}
+.profileBanner button{
+  margin-bottom: 2%;
+  margin-top: 2%;
+}
 }
 </style>

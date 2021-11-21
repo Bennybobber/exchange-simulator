@@ -8,8 +8,8 @@
       Sign up today, and instantly get access to $100,000 US dollars that can be traded across the
       simulator.</h1>
     </div>
-
-  <table class="table">
+<div class="table-responsive">
+  <table class="table" style="overflow-x:auto;">
   <thead class="thead-dark">
     <tr>
       <th @click="sort('rank')" scope="col">Rank #</th>
@@ -44,6 +44,7 @@
     </tr>
   </tbody>
 </table>
+</div>
   <div  v-if="this.marketRowData.length >= 10" class="navButtons">
     <button @click="prevPage" class="btn btn-dark">Previous</button>
     <div class="divider"/>
@@ -220,5 +221,10 @@ tr{
 .logo{
   margin-top: 1%;
   width: 100%;
+}
+@media only screen and (max-width: 600px) {
+h1{
+  font-size: 100%;
+}
 }
 </style>

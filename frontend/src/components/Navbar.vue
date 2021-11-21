@@ -3,8 +3,8 @@
 <template>
   <nav class="navbar navbar-expand-lg navbar">
     <img src="@/assets/SimEx.jpg">
-  <div class="collapse navbar-collapse" id="navbarText">
-    <ul class="navbar-nav mr-auto">
+  <div class ='nav-items' id="navbarText">
+    <ul class="navbar-nav">
       <li class="nav-item">
         <router-link to="/" class="nav-link color">Home</router-link>
       </li>
@@ -18,7 +18,8 @@
         <router-link to="/learn" class="nav-link color">Learn</router-link>
       </li>
     </ul>
-    <div id="userButton" style="margin-left: auto;">
+  </div>
+  <div class='loginB' id="userButton" style="margin-left: auto;">
       <button class="btn p-3 mb-2 bg-black text-light"
         v-if="this.$store.state.auth.status.loggedIn"
           @click="handleLogout()">
@@ -26,7 +27,6 @@
       </button>
       <button class="btn p-3 mb-2 bg-black text-light" v-else @click="handleLogin()">Login</button>
     </div>
-  </div>
 </nav>
 </template>
 
@@ -82,15 +82,32 @@ nav img{
 }
 nav {
   background-color: #298cd6;
-
 }
-.navLink{
-  display:block;
-  color: black;
-  padding: .5rem 1rem;
-  text-decoration: none;
+.nav-labels{
+  display: flex;
 }
 .color{
   color: white;
+}
+@media only screen and (max-width: 600px) {
+  nav{
+    height: 20%;
+  }
+  .loginB button{
+    margin: auto;
+  }
+  nav ul{
+    margin: auto;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  nav ul li {
+    display: block;
+    list-style-type: none;
+    padding: 7.5%;
+  }
+  nav img{
+    display: none;
+  }
 }
 </style>
