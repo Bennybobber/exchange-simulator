@@ -4,9 +4,9 @@
     <div class='mainContent'>
     <div id="introduction">
     <img class='logo' src="@/assets/bannerSimEx.jpg">
-    <p>Welcome to SimEx, a cryptocurrency simulator that utilises the latest cryptocurrnecy prices.
+    <h1>Welcome to SimEx, a cryptocurrency simulator that utilises the latest cryptocurrnecy prices.
       Sign up today, and instantly get access to $100,000 US dollars that can be traded across the
-      simulator.</p>
+      simulator.</h1>
     </div>
 
   <table class="table">
