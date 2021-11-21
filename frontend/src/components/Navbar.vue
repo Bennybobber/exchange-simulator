@@ -89,12 +89,21 @@ nav {
 .color{
   color: white;
 }
+ul li{
+  font-size: 150%;
+}
 @media only screen and (max-width: 600px) {
+  #userButton{
+  margin-right: auto;
+  }
   nav{
     height: 20%;
+    display: block;
   }
   .loginB button{
-    margin: auto;
+    margin-left: auto;
+    display: flex;
+    margin-right: 2%;
   }
   nav ul{
     margin: auto;
@@ -104,8 +113,11 @@ nav {
   nav ul li {
     display: block;
     list-style-type: none;
-    padding: 7.5%;
+    padding: 1%;
   }
+  ul li{
+  font-size: 0.9rem;
+}
   nav img{
     display: none;
   }

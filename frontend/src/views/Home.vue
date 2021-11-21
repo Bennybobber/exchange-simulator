@@ -222,6 +222,9 @@ tr{
   margin-top: 1%;
   width: 100%;
 }
+ul li{
+  font-size: 100px;
+}
 @media only screen and (max-width: 600px) {
 h1{
   font-size: 100%;
