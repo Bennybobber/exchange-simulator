@@ -1,7 +1,9 @@
 <template>
   <div class="home">
+    <div class='sidebar'> </div>
+    <div class='mainContent'>
     <div id="introduction">
-    <h1>SimEx Cryptocurrency Exchange Simulator </h1>
+    <img class='logo' src="@/assets/bannerSimEx.jpg">
     <p>Welcome to SimEx, a cryptocurrency simulator that utilises the latest cryptocurrnecy prices.
       Sign up today, and instantly get access to $100,000 US dollars that can be traded across the
       simulator.</p>
@@ -47,6 +49,8 @@
     <div class="divider"/>
     <button @click="nextPage" class="btn btn-dark">Next</button>
   </div>
+  </div>
+  <div class='sidebar'> </div>
   </div>
 
 </template>
@@ -158,7 +162,20 @@ export default {
 <style scoped>
 .home{
   margin: auto;
-  width: 75%;
+  width: 100%;
+  display: flex;
+}
+.mainContent{
+  width: 100%;
+}
+.sidebar{
+  width: 15%;
+  min-height: 100%;
+  background-color: white;
+}
+table{
+  width: 100%;
+  margin:auto;
 }
 h1{
   padding: 2%;
@@ -168,8 +185,9 @@ h1{
   padding: 5%;
 }
 #introduction{
-  width: 50%;
+  width: 100%;
   margin: auto;
+  background-color:white;
 }
 td img{
   width: 15%;
@@ -195,5 +213,12 @@ td {
 }
 th {
   cursor:pointer;
+}
+tr{
+  vertical-align: middle;
+}
+.logo{
+  margin-top: 1%;
+  width: 100%;
 }
 </style>

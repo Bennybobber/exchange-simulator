@@ -1,9 +1,10 @@
 <template>
   <div class="col-md-12">
     <div class="card card-container">
+      <h3> Create new SimEx account </h3>
       <img
         id="profile-img"
-        src="//ssl.gstatic.com/accounts/ui/avatar_2x.png"
+        src="@/assets/profile.png"
         class="profile-img-card"
       />
       <form name="form" @submit.prevent="handleRegister">
@@ -38,6 +39,7 @@
           </div>
           <div class="form-group">
             <button class="btn btn-primary btn-block">Sign Up</button>
+            <router-link to="/login" class="nav-link">Click Here To Login!</router-link>
           </div>
         </div>
       </form>
@@ -132,5 +134,8 @@ label {
   -moz-border-radius: 50%;
   -webkit-border-radius: 50%;
   border-radius: 50%;
+}
+button{
+  margin-top: 1%;
 }
 </style>

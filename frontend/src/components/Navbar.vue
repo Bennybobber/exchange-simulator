@@ -1,20 +1,21 @@
 <!-- src/components/Courses.vue -->
 
 <template>
-  <nav class="navbar navbar-expand-lg navbar navbar-dark bg-primary">
+  <nav class="navbar navbar-expand-lg navbar">
+    <img src="@/assets/SimEx.jpg">
   <div class="collapse navbar-collapse" id="navbarText">
     <ul class="navbar-nav mr-auto">
       <li class="nav-item">
-        <router-link to="/" class="nav-link">Home</router-link>
+        <router-link to="/" class="nav-link color">Home</router-link>
       </li>
       <li class="nav-item">
-        <router-link to="/portfolio" class="nav-link">Portfolio</router-link>
+        <router-link to="/portfolio" class="nav-link color">Portfolio</router-link>
       </li>
       <li class="nav-item">
-        <router-link to="/trade/BTC/bitcoin" class="nav-link">Trade</router-link>
+        <router-link to="/trade/BTC/bitcoin" class="nav-link color">Trade</router-link>
       </li>
       <li class="nav-item">
-        <router-link to="/learn" class="nav-link">Learn</router-link>
+        <router-link to="/learn" class="nav-link color">Learn</router-link>
       </li>
     </ul>
     <div id="userButton" style="margin-left: auto;">
@@ -71,8 +72,25 @@ export default {
 #topbarText a.router-link-exact-active:hover {
   color: rgb(255, 255, 255);
 }
-
 #userButton{
   margin-right: 1%;
+}
+nav img{
+  width: 5%;
+  margin-right: 1%;
+  margin-left: 1%;
+}
+nav {
+  background-color: #298cd6;
+
+}
+.navLink{
+  display:block;
+  color: black;
+  padding: .5rem 1rem;
+  text-decoration: none;
+}
+.color{
+  color: white;
 }
 </style>

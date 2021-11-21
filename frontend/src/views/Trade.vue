@@ -222,7 +222,7 @@ export default {
     },
     executeBuy(amount, total) {
       if (this.userBalance >= total && amount !== 0) {
-        if (window.confirm('Are you sure you want to execute this sell?')) {
+        if (window.confirm('Are you sure you want to execute this buy?')) {
           this.userBalance -= total;
           this.userData.trades.push({
             trade_time: new Date().getTime(),

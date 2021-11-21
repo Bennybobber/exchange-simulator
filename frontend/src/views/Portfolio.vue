@@ -335,7 +335,7 @@ export default {
   padding: 1%;
   background-color: black;
   color: white;
-  border-color: #0d6efd;
+  border-color: #298cd6;
 }
 .profileBanner button{
   height: 50%;
@@ -382,5 +382,8 @@ th {
     width:5px;
     height:auto;
     display:inline-block;
+}
+tr{
+  vertical-align: middle;
 }
 </style>
