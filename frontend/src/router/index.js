@@ -4,6 +4,7 @@ import Home from '../views/Home.vue';
 import Login from '../views/Login.vue';
 import Register from '../views/Register.vue';
 import Trade from '../views/Trade.vue';
+import Learn from '../views/Learn.vue';
 
 Vue.use(VueRouter);
 
@@ -22,7 +23,7 @@ const routes = [
     component: Register,
   },
   {
-    path: '/trade',
+    path: '/trade/:coin/:name',
     component: Trade,
   },
   {
@@ -30,6 +31,10 @@ const routes = [
     name: 'portfolio',
     // lazy-loaded
     component: () => import('../views/Portfolio.vue'),
+  },
+  {
+    path: '/learn',
+    component: Learn,
   },
 ];
 

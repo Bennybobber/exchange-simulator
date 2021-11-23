@@ -18,6 +18,7 @@ class Database(object):
         Database.DATABASE[Database.user_collection].insert(data)
     @staticmethod
     def update_user(data):
+        data['password'] = Database.retrieve_hashed_password(data['username'])
         query = {
             "username": data['username']
         }
@@ -61,5 +62,5 @@ class Database(object):
         query = {
             "username": username
         }
-        user_portfolio = Database().DATABASE[Database.user_collection].find_one(query, {'password': 0})
+        user_portfolio = Database().DATABASE[Database.user_collection].find_one(query, {'password': 0, '_id':0})
         return user_portfolio
