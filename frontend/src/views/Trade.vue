@@ -29,7 +29,7 @@
     </trading-vue>
     </div>
   <div class='tradePanel'>
-    <h1> USD Balance: {{ this.userBalance }} </h1>
+    <h1> USD Balance: {{ this.userBalance.toFixed(2) }} </h1>
     <h1> {{ this.$route.params.coin }} Balance: {{ this.assetBalance }} </h1>
     <div class='panel'>
       <h1> 1 {{ this.$route.params.coin }} = ${{ currentPrice }} </h1>
@@ -39,7 +39,7 @@
             type="text"
             placeholder="Amount to Buy">
           <div>
-            Total Cost: {{ this.totals }}
+            Total Cost: {{ this.totals.toFixed(2) }}
         </div>
       </div>
       <button @click="executeBuy(Number(amount), Number(totals))"
@@ -78,8 +78,8 @@ export default {
       price: null,
       amount: 0,
       totalCost: 0,
-      width: window.innerWidth * 0.75,
-      height: window.innerHeight * 0.75,
+      width: window.innerWidth * 0.99,
+      height: window.innerHeight * 0.99,
       ohlcv: [
       ],
     };
@@ -222,7 +222,7 @@ export default {
     },
     executeBuy(amount, total) {
       if (this.userBalance >= total && amount !== 0) {
-        if (window.confirm('Are you sure you want to execute this sell?')) {
+        if (window.confirm('Are you sure you want to execute this buy?')) {
           this.userBalance -= total;
           this.userData.trades.push({
             trade_time: new Date().getTime(),
@@ -331,10 +331,14 @@ export default {
   display:flex;
 }
 .inputForm{
-  display:flex;
+  display:block;
   width:50%;
   margin:auto;
   padding:1%;
+}
+.inputForm{
+  font-weight: bold;
+  font-size: large;
 }
 .tradeChart{
   margin:auto;
@@ -345,5 +349,20 @@ export default {
 }
 #tradeScreen{
   background-color: rgb(41, 39, 39);
+}
+@media only screen and (max-width: 600px) {
+.tradePanel{
+  width: 100%;
+}
+.tradePanel h1{
+ text-align: left;
+ display: block;
+}
+.inputForm{
+  width: 100%;
+}
+.panel h1{
+  text-align: center;
+}
 }
 </style>

@@ -1,23 +1,25 @@
 <!-- src/components/Courses.vue -->
 
 <template>
-  <nav class="navbar navbar-expand-lg navbar navbar-dark bg-primary">
-  <div class="collapse navbar-collapse" id="navbarText">
-    <ul class="navbar-nav mr-auto">
+  <nav class="navbar navbar-expand-lg navbar">
+    <img src="@/assets/SimEx.jpg">
+  <div class ='nav-items' id="navbarText">
+    <ul class="navbar-nav">
       <li class="nav-item">
-        <router-link to="/" class="nav-link">Home</router-link>
+        <router-link to="/" class="nav-link color">Home</router-link>
       </li>
       <li class="nav-item">
-        <router-link to="/portfolio" class="nav-link">Portfolio</router-link>
+        <router-link to="/portfolio" class="nav-link color">Portfolio</router-link>
       </li>
       <li class="nav-item">
-        <router-link to="/trade/BTC/bitcoin" class="nav-link">Trade</router-link>
+        <router-link to="/trade/BTC/bitcoin" class="nav-link color">Trade</router-link>
       </li>
       <li class="nav-item">
-        <router-link to="/learn" class="nav-link">Learn</router-link>
+        <router-link to="/learn" class="nav-link color">Learn</router-link>
       </li>
     </ul>
-    <div id="userButton" style="margin-left: auto;">
+  </div>
+  <div class='loginB' id="userButton" style="margin-left: auto;">
       <button class="btn p-3 mb-2 bg-black text-light"
         v-if="this.$store.state.auth.status.loggedIn"
           @click="handleLogout()">
@@ -25,7 +27,6 @@
       </button>
       <button class="btn p-3 mb-2 bg-black text-light" v-else @click="handleLogin()">Login</button>
     </div>
-  </div>
 </nav>
 </template>
 
@@ -71,8 +72,54 @@ export default {
 #topbarText a.router-link-exact-active:hover {
   color: rgb(255, 255, 255);
 }
-
 #userButton{
   margin-right: 1%;
+}
+nav img{
+  width: 5%;
+  margin-right: 1%;
+  margin-left: 1%;
+}
+nav {
+  background-color: #298cd6;
+}
+.nav-labels{
+  display: flex;
+}
+.color{
+  color: white;
+}
+ul li{
+  font-size: 150%;
+}
+@media only screen and (max-width: 600px) {
+  #userButton{
+  margin-right: auto;
+  }
+  nav{
+    height: 20%;
+    display: block;
+  }
+  .loginB button{
+    margin-left: auto;
+    display: flex;
+    margin-right: 2%;
+  }
+  nav ul{
+    margin: auto;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  nav ul li {
+    display: block;
+    list-style-type: none;
+    padding: 1%;
+  }
+  ul li{
+  font-size: 0.9rem;
+}
+  nav img{
+    display: none;
+  }
 }
 </style>

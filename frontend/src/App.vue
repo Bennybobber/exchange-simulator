@@ -51,6 +51,7 @@ export default {
   text-align: center;
   color: #2c3e50;
   position: relative;
+  min-height: 100vh;
 }
 body, html{
   margin: 0;
@@ -72,11 +73,11 @@ body, html{
 }
 #content-wrap{
   min-height: 100%;
+  padding-bottom: 10rem;
 }
-#footer{
-  overflow:hidden;
-  height: 100%;
-  width: 100%;
-  clear: both;
+@media only screen and (max-width: 600px) {
+#content-wrap{
+  padding-bottom:19rem;
+}
 }
 </style>
