@@ -1,14 +1,30 @@
 import requests
 import json
-import pprint
-pp = pprint.PrettyPrinter(indent=4)
+import asyncio
 
-def getTradablePairs():
-    binancePairs = getBinancePairs()
-    coinGeckoPairs = getCoinGeckoCoins()
-    return filterPairs(coinGeckoPairs, binancePairs)
+async def getTradablePairs():
+    """
+    Retrieves all tradable pairs
 
-def getBinancePairs():  
+    :params: 0
+
+    :return:
+        filteredPairs (dict): dictionary of all filtered pairs
+
+    """
+    coinapiPairs = await getCoinapiPairs()
+    coinGeckoPairs = await getCoinGeckoCoins()
+    return await filterPairs(coinGeckoPairs, coinapiPairs)
+
+async def getCoinapiPairs(): 
+    """
+    Retrieves the CoinAPI pairs
+
+    :params:
+    :return:
+        pairs: (dict) Dictionary of coinAPI crypto pairs
+
+    """
     pairs = []
     headers= {
         "Authorization": "Bearer 57401018-8c1c-4d0c-8c51-7116a7cba133"
@@ -16,72 +32,106 @@ def getBinancePairs():
     try:
         url = 'https://api.coincap.io/v2/assets'
         response = requests.get(url, headers)
-        print(response.status_code)
         if (response.status_code == 429):
            raise Exception('Public API Failure')
-        coins = response.json()['data']
-        return coins 
+        pairs = response.json()['data']
+        return pairs 
     except Exception as err:
         return err
 
-def getCoinGeckoCoins():
+async def getCoinGeckoCoins():
+    """
+    Retrieves the coinGecko API pairs
+
+    :params:
+    :return:
+        pairs (dict): Dictionary of coinGecko API crypto pairs 
+
+    """
     try:
         url = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd"
         response = requests.get(url)
         pairs = response.json()
-        # pp.pprint(pairs)
         return pairs
     except Exception as err:
         return err
 
 def sort_by_marketcap(e):
+    """
+    Sets the sort to marketcap
+
+    :params:
+        e: dictionary parameter to sort by
+
+    :return: 
+        e (String): filter set to market_cap_rank
+
+    """
     return e['market_cap_rank']
 
-def filterPairs(coinGeckoPairs, binancePairs):
+async def filterPairs(coinGeckoPairs, coinapiPairs):
+    """
+    Filters between the two dictionary of pairs
+
+    :params:
+        coinGeckoPairs (dict): A dictionary of coinGeckoPairs
+        coinapiPairs (dict): A dictionary of coinapiPairs
+
+    :return:
+        filteredPairs (dict): Dictionary of filtered apirs
+
+    """
     filteredPairs = []
     try:
         for item in coinGeckoPairs:  
-            for coin in binancePairs:
+            for coin in coinapiPairs:
                 if(item['symbol'].upper() == coin['symbol']):
-                    """ coin['image'] = item['image']
-                    coin['high_24h'] = item['high_24h']
-                    coin['price_change_percentage_24h'] = item['price_change_percentage_24h']
-                    coin['market_cap_rank'] = item['market_cap_rank']
-                    coin['market_cap'] = item['market_cap']
-                    coin['current_price'] = item['current_price']
-                    coin.pop('rank', None)
-                    coin.pop('marketCapUsd', None)
-                    coin.pop('priceUsd', None)
-                    filteredPairs.append(coin) """
                     item['id'] = coin['id']
                     filteredPairs.append(item)
                     break
-        filteredPairs.sort(key=sort_by_marketcap)
+        filteredPairs.sort(key = sort_by_marketcap)
         return filteredPairs
     except Exception as err:
         print('error')
         print(err)
 
-def specific_coin(symbol):
-    coingecko = getCoinGeckoCoins()
+async def specific_coin(symbol):
+    """
+    Filters between the two dictionary of pairs
+
+    :params:
+        symbol (String): the asset symbol used to identify the pair
+
+    :return:
+        coin (dict): Dictionary of data for a specific coin
+
+    """
+    coingecko = await getCoinGeckoCoins()
     for coin in coingecko:
         if coin['symbol'] == symbol.lower():
-            print(coin)
             return coin
     return False
    
     
 
-def get_coin_history(coin, interval):
+async def get_coin_history(coin, interval):
+    """
+    Filters between the two dictionary of pairs
+
+    :params:
+    :return:
+        history (dict): Dictionary of candelstick history data
+
+    """
     try:
         headers= {
         "Authorization": "Bearer 57401018-8c1c-4d0c-8c51-7116a7cba133"
         }
         url = f"https://api.coincap.io/v2/candles?exchange=binance&interval={interval}&baseId={coin}&quoteId=tether"
-        response = requests.get(url, headers)
-        if (response.status_code == 429):
-            return response
-        return response.json()
+        history = requests.get(url, headers)
+        if (history.status_code == 429):
+            return history
+        return history.json()
     except Exception as err:
         print(err)
         return err

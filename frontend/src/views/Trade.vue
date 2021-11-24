@@ -85,6 +85,8 @@ export default {
     };
   },
   computed: {
+    // Computed events so that all data on the page is kept up to date and updates
+    // for the user without the need to refresh the page
     currentPrice: {
       get: function () {
         return this.price;
@@ -135,13 +137,17 @@ export default {
     },
   },
   created() {
+    // Fetch user, candlestick, and coin data to set the page up when a user arrives.
     this.fetchUser();
     this.retrieveCandlesticks();
     this.retrieveCoinInformation();
     this.loggedIn = this.$route.query.page;
+    // Connects to the websocket for the current asset to recieve constant real time updates.
     this.connection = new WebSocket(`wss://ws.coincap.io/prices?assets=${this.$route.params.name}`);
 
     this.connection.onmessage = (event) => {
+      // Every time the price updates, make sure to update the current price, the chart price,
+      // the chart and the amount users will have to pay for a trade.
       const price = JSON.parse(event.data);
       this.currentPrice = price[this.$route.params.name];
       this.latestChartPrice = price[this.$route.params.name];
@@ -153,8 +159,12 @@ export default {
     };
   },
   methods: {
-    retrieveCandlesticks() {
-      axios({
+    async retrieveCandlesticks() {
+      /**
+       * Retrieves the candlestick history data from the backend api
+       * using parameters for the crypto asset as well as the interval
+       */
+      await axios({
         method: 'get',
         url: 'http://localhost:5000/api/coin/history',
         params: { coin: this.$route.params.name, interval: 'h1' },
@@ -166,8 +176,11 @@ export default {
           console.log(error);
         });
     },
-    retrieveCoinInformation() {
-      axios({
+    async retrieveCoinInformation() {
+      /**
+       * Retrieves the information about the given coin from the backend api
+       */
+      await axios({
         method: 'get',
         url: 'http://localhost:5000/api/coin/info',
         params: { symbol: this.$route.params.coin },
@@ -196,6 +209,9 @@ export default {
       return completeList;
     },
     fetchUser() {
+      /**
+       * Retrieves the user object from the dictionary hosted on the backend flask framework.
+       */
       UserService.getUser().then(
         (response) => {
           this.userData = response.data;
@@ -216,11 +232,26 @@ export default {
       );
     },
     setPercentageColour(percentage) {
+      /**
+       * Checks to see if the 24h % change is negative, if it is
+       * changes it to red, else changes it to green.
+       * :params:
+       *      percentage (String): String value of the percentage.
+       * :return:
+       *    color (String): string of the CSS colour style.
+       */
       if (percentage == null) return '';
       const color = (String(percentage).includes('-')) ? 'red' : 'green';
       return `color: ${color}`;
     },
     executeBuy(amount, total) {
+      /**
+       * Executes a buy trade for a given coin, checking that the user first has enough
+       * balance available and the total they're trying to buy is more than 0
+       * :params:
+       *      amount (integer): The amount of an asset the user wants to buy
+       *      total (integer): The total cost of the asset trade
+       */
       if (this.userBalance >= total && amount !== 0) {
         if (window.confirm('Are you sure you want to execute this buy?')) {
           this.userBalance -= total;
@@ -239,6 +270,13 @@ export default {
       this.amount = 0;
     },
     executeSell(amount, total) {
+      /**
+       * Executes a sell trade for an asset, by first checking to see if the user has enough
+       * of the asset to sell, and ensuring that they want to sell more than 0 of the asset.
+       * :params:
+       *      amount (integer): The amount of an asset the user wants to sell
+       *      total (integer): The total cost of the asset trade
+       */
       if (this.assetBalance >= amount && amount !== 0) {
         if (window.confirm('Are you sure you want to execute this sell?')) {
           this.userBalance += total;
@@ -257,9 +295,11 @@ export default {
       this.amount = 0;
     },
     updateAmount() {
+      // Dynamically updates the total cost of a buy/sell trade for the user.
       this.totals = this.amount * this.currentPrice;
     },
     updateDatabase() {
+      // Sends an update to the database after a buy or sell has been executed to update a user.
       this.userData.balance = this.userBalance;
       UserService.updateUser(this.userData).then(
         (response) => { console.log(response); },
@@ -275,6 +315,12 @@ export default {
       );
     },
     isNumber(inputEvent) {
+      /**
+       * Checks to see that a number and only 1 decimal point can be used. Will reject any other
+       * characters that are entered in.
+       * :params:
+       *      inputEvent (char): The character a user inputs into the input box for a buy/sell
+       */
       const event = inputEvent || window.event;
       const charCode = (event.which) ? event.which : event.keyCode;
       if ((charCode > 31 && (charCode < 48 || charCode > 57)) && charCode !== 46) {
@@ -282,19 +328,13 @@ export default {
       }
       if (String(this.amount).includes('.') && charCode === 46) event.preventDefault();
     },
-    showModal() {
-      this.isModalVisible = true;
-    },
-    closeModal() {
-      this.isModalVisible = false;
-    },
   },
   beforeRouteLeave(to, from, next) {
     // called when the route that renders this component is about to
     // be navigated away from.
     // has access to `this` component instance.
 
-    // this.connection is your ws
+    // close the connection if the user is going to another page.
     this.connection.close();
     next();
   },

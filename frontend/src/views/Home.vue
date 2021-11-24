@@ -57,14 +57,11 @@
 </template>
 
 <script>
-// @ is an alias to /src
-// import HelloWorld from '@/components/HelloWorld.vue';
 import axios from 'axios';
 
 export default {
   name: 'Home',
   components: {
-    // HelloWorld,
   },
   data() {
     return {
@@ -85,8 +82,9 @@ export default {
       },
     },
   },
-  created() {
-    axios({
+  async created() {
+    // Retrieve the market data from the backend market endpoint.
+    await axios({
       method: 'get',
       url: 'http://localhost:5000/api/market',
     })
@@ -107,6 +105,12 @@ export default {
   },
   methods: {
     extractData(marketData) {
+      /**
+       * Extracts the retireved market data from the API and puts it into the market table
+       * :params:
+       *    marketData (dict): Dictionary of market data
+       * :return:
+       */
       Object.keys(marketData).forEach((key) => {
         const row = {
           currencyID: marketData[key].id,
@@ -146,13 +150,26 @@ export default {
       if (this.currentPage > 1) this.currentPage -= 1;
     },
     sort: function (s) {
-      //  if s == current sort, reverse
+      /**
+       * Sorting for the market data table
+       * :params:
+       *      s (string) the string to sort by
+       * :return:
+       */
       if (s === this.currentSort) {
         this.currentSortDir = this.currentSortDir === 'asc' ? 'desc' : 'asc';
       }
       this.currentSort = s;
     },
     setPercentageColour(percentage) {
+      /**
+       * Checks to see if the 24h % change is negative, if it is
+       * changes it to red, else changes it to green.
+       * :params:
+       *      percentage (String): String value of the percentage.
+       * :return:
+       *    color (String): string of the CSS colour style.
+       */
       const color = (percentage.includes('-')) ? 'red' : 'green';
       return `color: ${color}`;
     },
