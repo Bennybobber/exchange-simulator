@@ -15,8 +15,8 @@ from bson import json_util, ObjectId
 import json
 
 from config import get_config
-from functions.database import Database
-from functions.User import User
+from models.database import Database
+from models.User import User
 from functions import marketMethods
 
 app = Flask(__name__)
