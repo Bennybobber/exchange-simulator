@@ -21,7 +21,7 @@ from functions import marketMethods
 
 app = Flask(__name__)
 jwt = JWTManager(app)
-app.config['SECRET_KEY']='Th1s1ss3cr3t'
+app.config['SECRET_KEY']='z(0l£hnma$£!F!a,ilowo08adhjg'
 CORS(app)
 CONFIG = get_config()
 client = pymongo.MongoClient(CONFIG.DB_URI)
