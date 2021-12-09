@@ -6,6 +6,7 @@
           <strong>{{userData.username}}'s</strong> Portfolio
         </h3>
         <button  @click="resetProfile" class="btn btn-danger"> Reset Profile</button>
+        <button  @click="deleteProfile" class="btn btn-danger"> Delete Account</button>
       </div>
         <div class='balances'>
           <p class='balance'>
@@ -398,6 +399,40 @@ export default {
         );
       }
     },
+    deleteProfile: function () {
+      /**
+       * Deletes the users profile after checking that they are sure
+       * :params:
+       * :return:
+       */
+      if (window.confirm('Are you sure you want to DELETE your profile? You will have to sign up again.')) {
+        UserService.deleteUser(this.userData).then(
+          (response) => {
+            console.log(response);
+            this.$store.dispatch('auth/logout', this.user).then(
+              () => {
+                this.$router.push('/');
+              },
+              (error) => {
+                this.loading = false;
+                this.message = (error.response && error.response.data)
+                  || error.message
+                  || error.toString();
+              },
+            );
+          },
+          (error) => {
+            this.content = (error.response && error.response.data && error.response.data.message)
+            || error.message
+            || error.toString();
+
+            if (error.response && error.response.status === 403) {
+              EventBus.dispatch('logout');
+            }
+          },
+        );
+      }
+    },
   },
 };
 </script>
@@ -427,8 +462,11 @@ export default {
   border-color: #298cd6;
 }
 .profileBanner button{
-  height: 50%;
+  height: 33%;
+  margin: 2%;
   display: flex;
+  float: left;
+  margin-right: 5px;
 }
 .container{
   min-width: 100%;

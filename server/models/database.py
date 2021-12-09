@@ -20,7 +20,7 @@ class Database(object):
     
 
     @staticmethod
-    def insert_new_user(data):
+    async def insert_new_user(data):
         """
         Inserts a new user into the SimEx collection
         :params:
@@ -29,9 +29,23 @@ class Database(object):
 
         """
         Database.DATABASE[Database.user_collection].insert(data)
+    @staticmethod
+    async def delete_user(data):
+        """
+        Deletes a user from the database
+        :params:
+            data (string): string containing the username to be made into
+            a query, so that deletion can take place.
+        :return:
+
+        """
+        query = {
+            "username": data
+        }
+        Database.DATABASE[Database.user_collection].delete_one(query)
 
     @staticmethod
-    def update_user(data):
+    async def update_user(data):
         """
         Updates a new user record in the SimEx collection
         :params:
@@ -39,15 +53,15 @@ class Database(object):
         :return:
 
         """
-        data['password'] = Database.retrieve_hashed_password(data['username'])
+        data['password'] = await Database.retrieve_hashed_password(data['username'])
         query = {
             "username": data['username']
         }
-        currentUser = Database().find_one(query)
+        currentUser = await Database().find_one(query)
         Database.DATABASE[Database.user_collection].replace_one(query, data)
 
     @staticmethod
-    def find():
+    async def find():
         """
         returns tne entire SimEx collection
         :params:
@@ -57,7 +71,7 @@ class Database(object):
         return Database().DATABASE[Database.user_collection].find()
 
     @staticmethod
-    def find_one(query):
+    async def find_one(query):
         """
         Finds a user record in the dictionary
         :params:
@@ -69,7 +83,7 @@ class Database(object):
         return user
 
     @staticmethod
-    def check_username_exists(username):
+    async def check_username_exists(username):
         """
         Checks for a given username in the SimEx collection
         :params:
@@ -80,14 +94,14 @@ class Database(object):
         query = {
             "username":username
         }
-        name_query = Database().DATABASE[Database.user_collection].find_one(query)
+        name_query = await Database().find_one(query)
         #Check to see if a query was returned.
         if name_query is not None:
             return True
         
         return False
     @staticmethod
-    def retrieve_hashed_password(username):
+    async def retrieve_hashed_password(username):
         """
         Retireves the hashed password to check against the incoming password
         in a loginr request
@@ -101,11 +115,11 @@ class Database(object):
         query = {
             "username": username
         }
-        name_query = Database().DATABASE[Database.user_collection].find_one(query)
+        name_query = await Database().find_one(query)
         return name_query['password']
 
     @staticmethod
-    def retrieve_user_portfolio(username):
+    async def retrieve_user_portfolio(username):
         """
         Retrieves a users portfolio, making sure to remove the password and id from the 
         returned data first.

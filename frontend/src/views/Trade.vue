@@ -14,8 +14,12 @@
         <tr>
           <th scope="row">{{ this.coinData.id }}</th>
           <td>${{ currentPrice }}</td>
-          <td :style=setPercentageColour(this.coinData.price_change_percentage_24h)>
+          <td v-if=this.coinData.price_change_percentage_24h
+            :style=setPercentageColour(this.coinData.price_change_percentage_24h)>
             {{ this.coinData.price_change_percentage_24h.toFixed(2) }}%
+          </td>
+          <td v-else>
+            0%
           </td>
           <td>{{ this.coinData.low_24h }}</td>
           <td>{{ this.coinData.high_24h }}</td>
@@ -23,6 +27,13 @@
       </tbody>
     </table>
   <div class='tradeChart'>
+    <div class = "timeButtons">
+      <button @click="retrieveCandlesticks('m15')"> 15m </button>
+      <button @click="retrieveCandlesticks('m30')"> 30m </button>
+      <button @click="retrieveCandlesticks('h1')"> 1hr </button>
+      <button @click="retrieveCandlesticks('d1')"> 1d </button>
+      <button @click="retrieveCandlesticks('w1')"> 1w </button>
+    </div>
     <trading-vue :data="this.$data" :width="this.width" :height="this.height"
         :title-txt="`${this.$route.params.coin}USD`"
         :toolbar="true">
@@ -78,10 +89,9 @@ export default {
       price: null,
       amount: 0,
       totalCost: 0,
-      width: window.innerWidth * 0.99,
-      height: window.innerHeight * 0.99,
-      ohlcv: [
-      ],
+      width: window.innerWidth * 0.80,
+      height: window.innerHeight * 0.60,
+      ohlcv: [],
     };
   },
   computed: {
@@ -150,8 +160,14 @@ export default {
       // the chart and the amount users will have to pay for a trade.
       const price = JSON.parse(event.data);
       this.currentPrice = price[this.$route.params.name];
-      this.latestChartPrice = price[this.$route.params.name];
-      this.chart = this.latestChartPrice;
+      if (this.ohlcv.length !== 0) {
+        this.latestChartPrice = price[this.$route.params.name];
+      }
+      try {
+        this.chart = this.latestChartPrice;
+      } catch {
+        this.chart = [];
+      }
       this.updateAmount();
     };
     this.connection.onopen = function (event) {
@@ -159,7 +175,7 @@ export default {
     };
   },
   methods: {
-    async retrieveCandlesticks() {
+    async retrieveCandlesticks(interval = '1hr') {
       /**
        * Retrieves the candlestick history data from the backend api
        * using parameters for the crypto asset as well as the interval
@@ -167,10 +183,12 @@ export default {
       await axios({
         method: 'get',
         url: 'http://localhost:5000/api/coin/history',
-        params: { coin: this.$route.params.name, interval: 'h1' },
+        params: { coin: this.$route.params.name, interval: interval },
       })
         .then((response) => {
-          this.chart = this.stripDictonary(response.data.data);
+          if (response.data.data !== undefined) {
+            this.chart = this.stripDictonary(response.data.data);
+          }
         })
         .catch((error) => {
           console.log(error);
@@ -194,8 +212,13 @@ export default {
         });
     },
     stripDictonary(data) {
+      /**
+       * Takes the response data and splits it into open, high, low, close, volume
+       * data for the chart to take in.
+       */
       const completeList = [];
       let subList = [];
+      console.log(data);
       data.forEach((element) => {
         subList.push(element.period);
         subList.push(parseFloat(element.open));

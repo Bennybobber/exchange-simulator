@@ -94,26 +94,25 @@ ul li{
 }
 @media only screen and (max-width: 600px) {
   #userButton{
-  margin-right: auto;
+    margin-right: 5%;
   }
   nav{
     height: 20%;
-    display: block;
+    display: flex;
   }
   .loginB button{
-    margin-left: auto;
     display: flex;
     margin-right: 2%;
   }
   nav ul{
     margin: auto;
     flex-direction: row;
-    justify-content: space-between;
   }
   nav ul li {
     display: block;
     list-style-type: none;
-    padding: 1%;
+    padding: 3%;
+    margin: 1%;
   }
   ul li{
   font-size: 0.9rem;
