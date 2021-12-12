@@ -1,6 +1,7 @@
 import requests
 import json
 import asyncio
+import time
 
 async def getTradablePairs():
     """
@@ -30,8 +31,14 @@ async def getCoinapiPairs():
         "Authorization": "Bearer 57401018-8c1c-4d0c-8c51-7116a7cba133"
     }
     try:
-        url = 'https://api.coincap.io/v2/assets'
-        response = requests.get(url, headers)
+        # Keep trying to get the data but don't spam (wait 5 seconds)
+        while True:
+            url = 'https://api.coincap.io/v2/assets'
+            response = requests.get(url, headers)
+            if (response.status_code == 200):
+                break
+            else:
+                time.sleep(5)
         if (response.status_code == 429):
            raise Exception('Public API Failure')
         pairs = response.json()['data']

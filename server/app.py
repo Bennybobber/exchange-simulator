@@ -71,7 +71,7 @@ async def login_user():
 
         username_exists = await Database().check_username_exists(auth['username'])
         if username_exists:
-            if bcrypt.checkpw(auth['password'].encode('utf-8'), await Database().retrieve_hashed_password(auth['username'])):  
+            if bcrypt.checkpw(auth['password'].encode('utf-8'), await Database().retrieve_hashed_password(auth['username'])):
                 ret = {
                     'accessToken': create_access_token(identity=auth['username']),
                     'refreshToken': create_refresh_token(identity=auth['username']),
@@ -110,9 +110,6 @@ async def markets():
     """
     try:
         markets = await marketMethods.getTradablePairs()
-        #markets = loop.create_task(marketMethods.getTradablePairs())
-        #loop.run_until_complete(markets)
-        #Return all matching assets.
         response = jsonify({
         'status': 'success',
         'markets': markets
@@ -192,6 +189,7 @@ async def get_coin_information():
         return jsonify(data), 200
     except Exception as err:
         return jsonify({'error': err}), 500
+
 @app.route('/api/coin/history', methods=['GET'])
 async def get_coin_history():
     """

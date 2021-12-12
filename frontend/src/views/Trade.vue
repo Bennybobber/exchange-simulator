@@ -21,20 +21,30 @@
           <td v-else>
             0%
           </td>
-          <td>{{ this.coinData.low_24h }}</td>
-          <td>{{ this.coinData.high_24h }}</td>
+          <td>${{ this.coinData.low_24h }}</td>
+          <td>${{ this.coinData.high_24h }}</td>
         </tr>
       </tbody>
     </table>
   <div class='tradeChart'>
     <div class = "timeButtons">
-      <button @click="retrieveCandlesticks('m15')"> 15m </button>
-      <button @click="retrieveCandlesticks('m30')"> 30m </button>
-      <button @click="retrieveCandlesticks('h1')"> 1hr </button>
-      <button @click="retrieveCandlesticks('d1')"> 1d </button>
-      <button @click="retrieveCandlesticks('w1')"> 1w </button>
+      <div class="timeContainer">
+      <button @click="retrieveCandlesticks('m15')"
+        :class="{active: interval === 'm15' }"> 15m </button>
+      <button @click="retrieveCandlesticks('m30')"
+        :class="{active: interval === 'm30' }"> 30m </button>
+      <button @click="retrieveCandlesticks('h1')"
+        :class="{active: interval === 'h1' }"> 1hr </button>
+      <button @click="retrieveCandlesticks('d1')"
+        :class="{active: interval === 'd1' }"> 1d </button>
+      <button @click="retrieveCandlesticks('w1')"
+        :class="{active: interval === 'w1' }"> 1w </button>
+      </div>
     </div>
-    <trading-vue :data="this.$data" :width="this.width" :height="this.height"
+    <trading-vue ref="tradingVue"
+        :data="this.$data"
+        :width="this.width"
+        :height="this.height"
         :title-txt="`${this.$route.params.coin}USD`"
         :toolbar="true">
     </trading-vue>
@@ -61,7 +71,6 @@
           Sell</button>
     </div>
   </div>
-
 </div>
 </template>
 
@@ -92,6 +101,7 @@ export default {
       width: window.innerWidth * 0.80,
       height: window.innerHeight * 0.60,
       ohlcv: [],
+      interval: '1h',
     };
   },
   computed: {
@@ -175,10 +185,11 @@ export default {
     };
   },
   methods: {
-    async retrieveCandlesticks(interval = '1hr') {
+    async retrieveCandlesticks(interval = 'h1') {
       /**
        * Retrieves the candlestick history data from the backend api
        * using parameters for the crypto asset as well as the interval
+       * :params: interval - The timeframe of candlesticks that we want.
        */
       await axios({
         method: 'get',
@@ -187,7 +198,9 @@ export default {
       })
         .then((response) => {
           if (response.data.data !== undefined) {
+            this.$refs.tradingVue.resetChart();
             this.chart = this.stripDictonary(response.data.data);
+            this.interval = interval;
           }
         })
         .catch((error) => {
@@ -410,8 +423,26 @@ export default {
 .trading-vue{
   margin:auto;
 }
+.timeButtons{
+  width: 80.5%;
+  margin: auto;
+}
+.timeContainer{
+  margin-left: auto;
+  margin-right: auto;
+  display:flex;
+  justify-content: flex-end;
+}
+.timeContainer button{
+  width: 5%;
+  border-style: solid;
+  display: inline-block;
+}
 #tradeScreen{
   background-color: rgb(41, 39, 39);
+}
+.active{
+  background-color: gray;
 }
 @media only screen and (max-width: 600px) {
 .tradePanel{
@@ -427,5 +458,9 @@ export default {
 .panel h1{
   text-align: center;
 }
+.timeContainer button{
+  width: 25%;
 }
+}
+
 </style>
