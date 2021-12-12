@@ -6,6 +6,7 @@
           <strong>{{userData.username}}'s</strong> Portfolio
         </h3>
         <button  @click="resetProfile" class="btn btn-danger"> Reset Profile</button>
+        <button  @click="deleteProfile" class="btn btn-danger"> Delete Account</button>
       </div>
         <div class='balances'>
           <p class='balance'>
@@ -164,6 +165,9 @@ export default {
     },
   },
   mounted() {
+    /**
+     * If the user is not logged in, redirect them to login page
+    */
     if (this.currentUser == null) {
       this.$router.push('/login');
     }
@@ -171,6 +175,12 @@ export default {
   },
   methods: {
     getUser() {
+      /**
+       * Retrieves the user object from the dictionary hosted on the
+       * backend flask framework.
+       * :params:
+       * :return:
+       */
       UserService.getUser().then(
         (response) => { this.setupPortfolio(response.data); },
         (error) => {
@@ -184,12 +194,20 @@ export default {
         },
       );
     },
-    setupPortfolio(userData) {
+    async setupPortfolio(userData) {
+      /**
+       * Sets up the portfolio page data (Filling in tables, piecharts etc)
+       * Sends a async request to the markets endpoint to retrieve the pairs
+       * that can be used for trading, as well as getting most recent price data.
+       * :params:
+       *    userData (dict) dictionary of userData
+       * :return:
+       */
       this.userData = userData;
       const assetValue = [];
       const assetWorth = [];
       this.rowData = [];
-      axios({
+      await axios({
         method: 'get',
         url: 'http://localhost:5000/api/market',
       })
@@ -217,9 +235,22 @@ export default {
       this.populateRecentTrades();
     },
     populateRecentTrades() {
+      /**
+       * Populates the Recent Trades data table using the trade data
+       * from the userdata that was retrieved.
+       * :params:
+       * :return:
+       */
       this.tradeRowData = this.userData.trades;
     },
     populateOwnedTable(assetAmount, marketData) {
+      /**
+       * Fills a row in the Asset table with the incoming asset data
+       * :params:
+       *    assetAmount (integer) The amount a user owns of an asset
+       *    marketData (dict) the most recent market data for an asset
+       * :return:
+       */
       const row = {
         currencyName: marketData.name,
         currencyImg: marketData.image,
@@ -231,6 +262,13 @@ export default {
       this.rowData.push(row);
     },
     updateAssetPage: function () {
+      /**
+       * Updates the asset table with pagination and will refresh when a heading
+       * is filtered and sorted
+       * :params:
+       * :return:
+       *    (integer) the new page to show
+       */
       return this.rowData.sort((a, b) => {
         let modifier = 1;
         if (this.currentAssetSortDir === 'desc') modifier = -1;
@@ -245,6 +283,13 @@ export default {
       });
     },
     updateTradePage: function () {
+      /**
+       * Updates the trade history table with pagination and will refresh when a heading
+       * is filtered and sorted
+       * :params:
+       * :return:
+       *    (integer) the new page to show
+       */
       return this.tradeRowData.sort((a, b) => {
         let modifier = 1;
         if (this.currentSortDir === 'desc') modifier = -1;
@@ -259,39 +304,80 @@ export default {
       });
     },
     sort: function (s) {
-      // if s == current sort, reverse
+      /**
+       * Sorting for the trade history table
+       * :params:
+       *      s (string) the string to sort by
+       * :return:
+       */
       if (s === this.currentSort) {
         this.currentSortDir = this.currentSortDir === 'asc' ? 'desc' : 'asc';
       }
       this.currentSort = s;
     },
     assetSort: function (s) {
-      // if s == current sort, reverse
-      console.log('Hewwo');
+      /**
+       * Sorting for the asset history table
+       * :params:
+       *      s (string) the string to sort by
+       * :return:
+       */
       if (s === this.currentAssetSort) {
         this.currentAssetSortDir = this.currentAssetSortDir === 'asc' ? 'desc' : 'asc';
       }
       this.currentAssetSort = s;
     },
     nextAssetPage: function () {
+      /**
+       * Moves to the next page on the asset table
+       * :params:
+       * :return:
+       */
       if ((this.currentAssetPage * this.pageSize) < this.rowData.length) this.currentAssetPage += 1;
     },
     prevAssetPage: function () {
+      /**
+       * Moves to the previous page on the asset table
+       * :params:
+       * :return:
+       */
       if (this.currentAssetPage > 1) this.currentAssetPage -= 1;
     },
     nextTradePage: function () {
+      /**
+       * Moves to the next page on the trade table
+       * :params:
+       * :return:
+       */
       if ((this.currentTradePage * this.pageSize) < this.tradeRowData.length) {
         this.currentTradePage += 1;
       }
     },
     prevTradePage: function () {
+      /**
+       * Moves to the previous page on the trade table
+       * :params:
+       * :return:
+       */
       if (this.currentTradePage > 1) this.currentTradePage -= 1;
     },
     setTradeColour: function (tradeType) {
+      /**
+       * Moves to the previous page on the trade table
+       * :params:
+       *      tradeType (String): string containing the type of trade it was
+       * :return:
+       *      color (String): CSS style for the colour of the trade (red if sell, green if buy)
+       */
       const color = (tradeType.includes('sell')) ? 'red' : 'green';
       return `color: ${color}`;
     },
     resetProfile: function () {
+      /**
+       * Resets the users profile after checking that they are sure
+       * :params:
+       * :return:
+       */
       if (window.confirm('Are you sure you want to RESET your profile?')) {
         this.userData.assets = {};
         this.userData.trades = [];
@@ -300,6 +386,40 @@ export default {
           (response) => {
             console.log(response);
             this.getUser();
+          },
+          (error) => {
+            this.content = (error.response && error.response.data && error.response.data.message)
+            || error.message
+            || error.toString();
+
+            if (error.response && error.response.status === 403) {
+              EventBus.dispatch('logout');
+            }
+          },
+        );
+      }
+    },
+    deleteProfile: function () {
+      /**
+       * Deletes the users profile after checking that they are sure
+       * :params:
+       * :return:
+       */
+      if (window.confirm('Are you sure you want to DELETE your profile? You will have to sign up again.')) {
+        UserService.deleteUser(this.userData).then(
+          (response) => {
+            console.log(response);
+            this.$store.dispatch('auth/logout', this.user).then(
+              () => {
+                this.$router.push('/');
+              },
+              (error) => {
+                this.loading = false;
+                this.message = (error.response && error.response.data)
+                  || error.message
+                  || error.toString();
+              },
+            );
           },
           (error) => {
             this.content = (error.response && error.response.data && error.response.data.message)
@@ -342,8 +462,11 @@ export default {
   border-color: #298cd6;
 }
 .profileBanner button{
-  height: 50%;
+  height: 33%;
+  margin: 2%;
   display: flex;
+  float: left;
+  margin-right: 5px;
 }
 .container{
   min-width: 100%;

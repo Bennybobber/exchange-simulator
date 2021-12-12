@@ -3,6 +3,7 @@ import requests
 import time
 
 from flask_cors import CORS
+import asyncio
 import pymongo
 import bcrypt
 from flask_jwt_extended import (
@@ -14,22 +15,22 @@ from bson import json_util, ObjectId
 import json
 
 from config import get_config
-from functions.database import Database
-from functions.User import User
+from models.database import Database
+from models.User import User
 from functions import marketMethods
-
 
 app = Flask(__name__)
 jwt = JWTManager(app)
-app.config['SECRET_KEY']='Th1s1ss3cr3t'
+app.config['SECRET_KEY']='z(0l£hnma$£!F!a,ilowo08adhjg'
 CORS(app)
 CONFIG = get_config()
 client = pymongo.MongoClient(CONFIG.DB_URI)
 Database.initialize(CONFIG.DB_URI)
 api_key = CONFIG.COIN_API_KEY
+loop = asyncio.get_event_loop()
 
 @app.route('/register', methods=['POST'])
-def user_registration():
+async def user_registration():
     """
     user_registration registers a new user in the mongo database by taking username and password
     uses bycrpyt to hash and salt the password before storing in the db.
@@ -40,26 +41,23 @@ def user_registration():
     try:
         data = request.json
         hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
-        username_exists = Database().check_username_exists(data['username'])
+        username_exists = await Database().check_username_exists(data['username'])
         if username_exists:
-            response = jsonify({
-            'status':'Username already exists'
-            })
-            return response, 403
+            return make_response('Username already exists',  403)
         new_user = User(data['username'], hashed_password)
-        Database().insert_new_user(new_user.return_query_data())
+        await Database().insert_new_user(new_user.return_query_data())
         response = jsonify({
             'message':'successfully registered user'
         
         })
         return response, 201
     except Exception as err:
-        return jsonify({'message': 'An Unknown Error Has Occured'}), 500
+        return make_response('Unknown Error Has Occured',  500)
 
     
 
 @app.route('/login', methods=['POST'])  
-def login_user():
+async def login_user():
     """
     login_user takes in request params Username and Password and checks them against the database stored ones.
 
@@ -67,24 +65,25 @@ def login_user():
     verified or an unknown other error has occured.
     """
     try: 
-        auth = request.json   
+        auth = request.json
         if not auth or not auth['username'] or not auth['password']:  
             return make_response('could not verify', 401, {'WWW.Authentication': 'Basic realm: "login required"'})    
 
-        username_exists = Database().check_username_exists(auth['username'])
+        username_exists = await Database().check_username_exists(auth['username'])
         if username_exists:
-            if bcrypt.checkpw(auth['password'].encode('utf-8'), Database().retrieve_hashed_password(auth['username'])):  
+            if bcrypt.checkpw(auth['password'].encode('utf-8'), await Database().retrieve_hashed_password(auth['username'])):
                 ret = {
                     'accessToken': create_access_token(identity=auth['username']),
                     'refreshToken': create_refresh_token(identity=auth['username']),
-                }  
+                }
                 return jsonify(ret), 200 
+        return make_response('could not verify',  401, {'WWW.Authentication': 'Basic realm: "login required"'})
     except Exception as err:
         return make_response('could not verify',  401, {'WWW.Authentication': 'Basic realm: "login required"'})
     
 @app.route('/refreshtoken', methods=['POST'])
 @jwt_required(refresh=True)
-def refresh():
+async def refresh():
     """
     refresh checks the incoming authorization header for a valid refresh token and then returns a new access
     token to the user.
@@ -99,32 +98,31 @@ def refresh():
     return jsonify(ret), 200
 
 @app.route('/api/market', methods=['GET'])
-def top_ten_markets():
+async def markets():
     """
-    top_ten_markets does an API GET request to the coingecko PUBLIC API to retrieve the markets
-    and filters out the to the top 10. 
+    Retrieves the top markets that match both coinapi and coingeckos so the data can be used
+    to get both information about the asset (from coingecko) and market information and ids
+    (from coinapi). 
 
-    :return: Returns a dictionary of the top 10 cryptocurrnecy markets, or a 500 error for an
+    :return: Returns a dictionary of the top 100 cryptocurrnecy markets, or a 500 error for an
     unknown error.
 
     """
     try:
-        #Return the top 10 markets
+        markets = await marketMethods.getTradablePairs()
         response = jsonify({
         'status': 'success',
-        'markets': marketMethods.getTradablePairs()
+        'markets': markets
         })
         return response, 200
-    except HTTPError as http_err:
-        print(f'HTTPS error occured: {http_err}')
-        return http_err, 500
     except Exception as err:
         print(f'An Error Occured: {err}')
         return jsonify({'message': 'An Unknown Error Has Occured'}), 500
+    return jsonify({'message': 'An Unknown Error Has Occured'}), 500
 
-@app.route('/api/user', methods=['GET','POST'])
+@app.route('/api/user', methods=['GET','POST','DELETE'])
 @jwt_required()
-def retrieve_user_data():
+async def retrieve_user_data():
     """
     retrieve_user_data calls a function in the Database module to retrieve the users details
     for their portfolio page. 
@@ -136,44 +134,85 @@ def retrieve_user_data():
     if request.method == 'GET':
         try:
             username = get_jwt_identity()
-            user_data=Database().retrieve_user_portfolio(username)
+            user_data = await Database().retrieve_user_portfolio(username)
             user_data = json.dumps(user_data, default=str)
             return user_data, 200
         except Exception as err:
+            print(err)
             return jsonify({'message': 'An Unknown Error Has Occured'}), 500
     if request.method == 'POST':
-        print('Posting to user...')
         try:
             data = request.json
-            print(data)
-            Database().update_user(data['data'])
+            await Database().update_user(data['data'])
             return jsonify({'message':'Successful Trade'}), 200
+        except Exception as err:
+            print(err)
+            return jsonify({'message': 'An Unknown Error Has Occured'}), 500
+    if request.method == 'DELETE':
+        try:
+            print("Delet this")
+            username = get_jwt_identity()
+            print(username)
+            await Database().delete_user(username)
+            return jsonify({'message':'Successful deleation'}), 200
         except Exception as err:
             print(err)
             return jsonify({'message': 'An Unknown Error Has Occured'}), 500
     
 @app.route('/api/pairs', methods=['GET'])
-def retrieve_binance_pairs():
+async def retrieve_coinApi_pairs():
+    """
+    This retrieves all the tradable pairs (Ones that both match coingecko and coinapi).
+
+    :return: Returns a dictionary of all the tradable pairs, or a 500 error for an
+    unknown error.
+
+    """
     try:
-        return jsonify({"coins": marketMethods.getTradablePairs()}), 200
+        return jsonify({"coins": await marketMethods.getTradablePairs()}), 200
     except Exception as err:
         return jsonify({'message': 'An Unknown Error Has Occured'}), 500 
 
 @app.route('/api/coin/info', methods=['GET'])
-def get_coin_information():
+async def get_coin_information():
+    """
+    Retrieves a specific coins information.
+
+    :return: Returns a dictionary with the details of a specific assset,
+    a 404 for unknown coin, or a 500 error for an unknown error.
+
+    """
     try:
-        data = marketMethods.specific_coin(request.args.get('symbol'))
+        data = await marketMethods.specific_coin(request.args.get('symbol'))
         if data == False:
             return jsonify({'message': 'Coin was not found'}), 404
         return jsonify(data), 200
     except Exception as err:
         return jsonify({'error': err}), 500
+
 @app.route('/api/coin/history', methods=['GET'])
-def get_coin_history():
+async def get_coin_history():
+    """
+    Retrieves the candlestick history for a given coin asset.
+
+    :params:
+        args.get('coin') (String): a string of the coins ID
+        args.get('interval') (String): an interval of history
+
+    :return: Returns a dictionary of candlestick data given in the current
+    interval sent, or a 500 error if an error occurs.
+
+    """
+    data  = None
     try:
-        data = marketMethods.get_coin_history(request.args.get('coin'), request.args.get('interval'))
+        data = await marketMethods.get_coin_history(request.args.get('coin'), request.args.get('interval'))
+        while (type(data) != dict):
+            time.sleep(2)
+            data = await marketMethods.get_coin_history(request.args.get('coin'), request.args.get('interval'))
         return data, 200
     except Exception as err:
         print(err)
         return jsonify({'error': err}), 500
 
+if __name__ == '__main__':
+    app.run(debug=True)

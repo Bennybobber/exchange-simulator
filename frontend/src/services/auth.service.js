@@ -5,13 +5,14 @@ import tokenService from './token.service';
 const API_URL = 'http://localhost:5000/';
 
 class AuthService {
-  login(user) {
+  async login(user) {
     return axios
       .post(`${API_URL}login`, {
         username: user.username,
         password: user.password,
       })
       .then((response) => {
+        console.log(response.data);
         if (response.data.accessToken) {
           tokenService.setUser(response.data);
         }
@@ -25,7 +26,7 @@ class AuthService {
     return { message: 'Logout Successful' };
   }
 
-  refreshToken() {
+  async refreshToken() {
     const user = localStorage.getItem('user');
     return api.post(`${API_URL}refreshtoken`, { headers: user.refreshToken })
       .then((response) => {
@@ -35,7 +36,7 @@ class AuthService {
       });
   }
 
-  register(user) {
+  async register(user) {
     return axios
       .post(`${API_URL}register`, {
         username: user.username,

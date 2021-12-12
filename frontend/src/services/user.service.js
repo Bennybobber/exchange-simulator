@@ -8,12 +8,14 @@ class UserService {
   }
 
   updateUser(userData) {
-    console.log('attempting to update...');
     return api.post(`${API_URL}user`, { data: userData });
   }
 
+  deleteUser(userData) {
+    return api.delete(`${API_URL}user`, { data: userData });
+  }
+
   getUser() {
-    console.log('getting user...');
     return api.get(`${API_URL}user`);
   }
 }
