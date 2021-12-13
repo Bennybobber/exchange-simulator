@@ -138,6 +138,12 @@ async def get_coin_history(coin, interval):
         history = requests.get(url, headers)
         if (history.status_code == 429):
             return history
+        # Try another exchange if binance doesn't support the token.
+        if (len(history.json()['data']) == 0):
+            url = f"https://api.coincap.io/v2/candles?exchange=okex&interval={interval}&baseId={coin}&quoteId=tether"
+            history = requests.get(url, headers)
+        if (history.status_code == 429):
+            return history
         return history.json()
     except Exception as err:
         print(err)

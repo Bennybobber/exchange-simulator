@@ -207,7 +207,7 @@ async def get_coin_history():
     try:
         data = await marketMethods.get_coin_history(request.args.get('coin'), request.args.get('interval'))
         while (type(data) != dict):
-            time.sleep(2)
+            time.sleep(5)
             data = await marketMethods.get_coin_history(request.args.get('coin'), request.args.get('interval'))
         return data, 200
     except Exception as err:

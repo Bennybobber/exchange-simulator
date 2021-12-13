@@ -26,7 +26,7 @@
         </tr>
       </tbody>
     </table>
-  <div class='tradeChart'>
+  <div class='tradeChart' :class="{ hide: !candlesExist }">
     <div class = "timeButtons">
       <div class="timeContainer">
       <button @click="retrieveCandlesticks('m15')"
@@ -49,6 +49,11 @@
         :toolbar="true">
     </trading-vue>
     </div>
+  <div class='noGraph' :class="{ hide: candlesExist }">
+    <h1> There is currently no available graphs for this coin. </h1>
+    <p> Please check back again at a future date, as graphs will become
+      available as and when the API supports it! </p>
+  </div>
   <div class='tradePanel'>
     <h1> USD Balance: {{ this.userBalance.toFixed(2) }} </h1>
     <h1> {{ this.$route.params.coin }} Balance: {{ this.assetBalance }} </h1>
@@ -102,6 +107,7 @@ export default {
       height: window.innerHeight * 0.60,
       ohlcv: [],
       interval: '1h',
+      candlesExist: false,
     };
   },
   computed: {
@@ -199,8 +205,12 @@ export default {
         .then((response) => {
           if (response.data.data !== undefined) {
             this.$refs.tradingVue.resetChart();
-            this.chart = this.stripDictonary(response.data.data);
-            this.interval = interval;
+            console.log(response.data.data.length);
+            if (response.data.data.length !== 0) {
+              this.chart = this.stripDictonary(response.data.data);
+              this.interval = interval;
+              this.candlesExist = true;
+            } else { this.candlesExist = false; }
           }
         })
         .catch((error) => {
@@ -377,6 +387,9 @@ export default {
 };
 </script>
 <style scoped>
+.hide {
+  visibility: hidden !important;
+}
 .tradePanel{
   color:white;
   margin:auto;
@@ -443,6 +456,10 @@ export default {
 }
 .active{
   background-color: gray;
+}
+.noGraph {
+  border-style: solid;
+  background-color: red;
 }
 @media only screen and (max-width: 600px) {
 .tradePanel{
