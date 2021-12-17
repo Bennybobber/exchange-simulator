@@ -119,7 +119,7 @@ async def markets():
         return jsonify({'message': 'An Unknown Error Has Occured'}), 500
     return jsonify({'message': 'An Unknown Error Has Occured'}), 500
 
-@app.route('/api/user', methods=['GET','POST','DELETE'])
+@app.route('/api/user', methods=['GET','PUT','DELETE'])
 @jwt_required()
 async def retrieve_user_data():
     """
@@ -139,7 +139,7 @@ async def retrieve_user_data():
         except Exception as err:
             print(err)
             return jsonify({'message': 'An Unknown Error Has Occured'}), 500
-    if request.method == 'POST':
+    if request.method == 'PUT':
         try:
             data = request.json
             await Database().update_user(data['data'])
@@ -149,11 +149,9 @@ async def retrieve_user_data():
             return jsonify({'message': 'An Unknown Error Has Occured'}), 500
     if request.method == 'DELETE':
         try:
-            print("Delet this")
             username = get_jwt_identity()
-            print(username)
             await Database().delete_user(username)
-            return jsonify({'message':'Successful deleation'}), 200
+            return jsonify({'message':'Successful deletion'}), 200
         except Exception as err:
             print(err)
             return jsonify({'message': 'An Unknown Error Has Occured'}), 500

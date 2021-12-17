@@ -309,8 +309,8 @@ export default {
             usd_cost: total,
             asset_cost: total / amount,
           });
-          this.assetBalance += amount;
-          this.updateDatabase();
+          const assetBalance = this.assetBalance + amount;
+          this.updateDatabase(assetBalance);
         }
       }
       this.amount = 0;
@@ -334,8 +334,8 @@ export default {
             usd_cost: total,
             asset_cost: total / amount,
           });
-          this.assetBalance -= amount;
-          this.updateDatabase();
+          const assetBalance = this.assetBalance - amount;
+          this.updateDatabase(assetBalance);
         }
       }
       this.amount = 0;
@@ -344,11 +344,14 @@ export default {
       // Dynamically updates the total cost of a buy/sell trade for the user.
       this.totals = this.amount * this.currentPrice;
     },
-    updateDatabase() {
+    updateDatabase(assetBalance) {
       // Sends an update to the database after a buy or sell has been executed to update a user.
-      this.userData.balance = this.userBalance;
       UserService.updateUser(this.userData).then(
-        (response) => { console.log(response); },
+        (response) => {
+          console.log(response);
+          this.userData.balance = this.userBalance;
+          this.assetBalance = assetBalance;
+        },
         (error) => {
           this.content = (error.response && error.response.data && error.response.data.message)
           || error.message
