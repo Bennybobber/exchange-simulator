@@ -141,8 +141,8 @@ export default {
       get: function () {
         return this.UsdBalance;
       },
-      set: function (blanace) {
-        this.UsdBalance = blanace;
+      set: function (balanace) {
+        this.UsdBalance = balanace;
       },
     },
     assetBalance: {
@@ -301,6 +301,7 @@ export default {
       if (this.userBalance >= total && amount !== 0) {
         if (window.confirm('Are you sure you want to execute this buy?')) {
           this.userBalance -= total;
+          this.userData.balance -= total;
           this.userData.trades.push({
             trade_time: new Date().getTime(),
             type: 'buy',
@@ -310,6 +311,8 @@ export default {
             asset_cost: total / amount,
           });
           const assetBalance = this.assetBalance + amount;
+          this.userData.assets[this.$route.params.coin] = assetBalance;
+          console.log(this.userBalance);
           this.updateDatabase(assetBalance);
         }
       }
@@ -326,6 +329,7 @@ export default {
       if (this.assetBalance >= amount && amount !== 0) {
         if (window.confirm('Are you sure you want to execute this sell?')) {
           this.userBalance += total;
+          this.userData.balance += total;
           this.userData.trades.push({
             trade_time: new Date().getTime(),
             type: 'sell',
@@ -335,6 +339,7 @@ export default {
             asset_cost: total / amount,
           });
           const assetBalance = this.assetBalance - amount;
+          this.userData.assets[this.$route.params.coin] = assetBalance;
           this.updateDatabase(assetBalance);
         }
       }
@@ -346,6 +351,7 @@ export default {
     },
     updateDatabase(assetBalance) {
       // Sends an update to the database after a buy or sell has been executed to update a user.
+      console.log(this.userData);
       UserService.updateUser(this.userData).then(
         (response) => {
           console.log(response);

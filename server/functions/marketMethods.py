@@ -99,7 +99,6 @@ async def filterPairs(coinGeckoPairs, coinapiPairs):
         filteredPairs.sort(key = sort_by_marketcap)
         return filteredPairs
     except Exception as err:
-        print('error')
         print(err)
 
 async def specific_coin(symbol):

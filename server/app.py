@@ -132,25 +132,21 @@ async def retrieve_user_data():
     """
     if request.method == 'GET':
         try:
-            username = get_jwt_identity()
-            user_data = await Database().retrieve_user_portfolio(username)
+            user_data = await Database().retrieve_user_portfolio(get_jwt_identity())
             user_data = json.dumps(user_data, default=str)
             return user_data, 200
         except Exception as err:
-            print(err)
             return jsonify({'message': 'An Unknown Error Has Occured'}), 500
     if request.method == 'PUT':
         try:
-            data = request.json
-            await Database().update_user(data['data'])
+            await Database().update_user(request.json['data'])
             return jsonify({'message':'Successful Trade'}), 200
         except Exception as err:
             print(err)
             return jsonify({'message': 'An Unknown Error Has Occured'}), 500
     if request.method == 'DELETE':
         try:
-            username = get_jwt_identity()
-            await Database().delete_user(username)
+            await Database().delete_user(get_jwt_identity())
             return jsonify({'message':'Successful deletion'}), 200
         except Exception as err:
             print(err)
@@ -181,7 +177,7 @@ async def get_coin_information():
     """
     try:
         data = await marketMethods.specific_coin(request.args.get('symbol'))
-        if data == False:
+        if data is False:
             return jsonify({'message': 'Coin was not found'}), 404
         return jsonify(data), 200
     except Exception as err:
