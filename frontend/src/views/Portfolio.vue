@@ -5,8 +5,16 @@
         <h3>
           <strong>{{userData.username}}'s</strong> Portfolio
         </h3>
-        <button  @click="resetProfile" class="btn btn-danger"> Reset Profile</button>
-        <button  @click="deleteProfile" class="btn btn-danger"> Delete Account</button>
+        <button
+          @click="resetProfile"
+          id="reset__button"
+          class="btn btn-danger"> Reset Profile
+        </button>
+        <button
+          @click="deleteProfile"
+          id="delete__button"
+          class="btn btn-danger">Delete Account
+        </button>
       </div>
         <div class='balances'>
           <p class='balance'>
@@ -130,6 +138,9 @@ export default {
       currentAssetSortDir: 'desc',
       currentAssetSort: 'amountOwned',
     };
+  },
+  async created() {
+    document.title = 'Portfolio';
   },
   computed: {
     sortedCurrencies: function () {

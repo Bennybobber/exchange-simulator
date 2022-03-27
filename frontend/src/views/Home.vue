@@ -46,9 +46,9 @@
 </table>
 </div>
   <div  v-if="this.marketRowData.length >= 10" class="navButtons">
-    <button @click="prevPage" class="btn btn-dark">Previous</button>
+    <button @click="prevPage" id="next__page" class="btn btn-dark">Previous</button>
     <div class="divider"/>
-    <button @click="nextPage" class="btn btn-dark">Next</button>
+    <button @click="nextPage" id="previous__page" class="btn btn-dark">Next</button>
   </div>
   </div>
   <div class='sidebar'> </div>
@@ -84,6 +84,7 @@ export default {
   },
   async created() {
     // Retrieve the market data from the backend market endpoint.
+    document.title = 'SimEx Home';
     await axios({
       method: 'get',
       url: 'http://localhost:5000/api/market',

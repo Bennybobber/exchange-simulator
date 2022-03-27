@@ -215,6 +215,9 @@ export default {
       },
     };
   },
+  async created() {
+    document.title = 'Learn';
+  },
 };
 </script>
 

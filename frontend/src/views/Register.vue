@@ -66,6 +66,9 @@ export default {
       message: '',
     };
   },
+  async created() {
+    document.title = 'Register';
+  },
   computed: {
     loggedIn() {
       return this.$store.state.auth.status.loggedIn;
@@ -78,7 +81,6 @@ export default {
   },
   methods: {
     handleRegister() {
-      console.log('Handling Registering....');
       this.message = '';
       this.submitted = true;
       this.$validator.validate().then((isValid) => {

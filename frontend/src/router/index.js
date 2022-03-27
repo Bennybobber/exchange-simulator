@@ -13,6 +13,10 @@ const routes = [
     path: '/',
     name: 'Home',
     component: Home,
+    meta: {
+      title: 'SimEx Home',
+
+    },
   },
   {
     path: '/login',

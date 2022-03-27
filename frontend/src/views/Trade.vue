@@ -163,6 +163,7 @@ export default {
     },
   },
   created() {
+    document.title = `Trade USD/${this.$route.params.name.toUpperCase()}`;
     // Fetch user, candlestick, and coin data to set the page up when a user arrives.
     this.fetchUser();
     this.retrieveCandlesticks();

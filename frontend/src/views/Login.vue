@@ -39,11 +39,15 @@
           >Password is required!</div>
         </div>
         <div class="form-group">
-          <button class="btn btn-primary btn-block" :disabled="loading">
+          <button class="btn btn-primary btn-block" id='submit__login'
+            :disabled="loading">
             <span v-show="loading" class="spinner-border spinner-border-sm"></span>
             <span>Login</span>
           </button>
-          <router-link to="/register" class="nav-link">Click Here To Register!</router-link>
+          <router-link to="/register"
+            id='register'
+            class="nav-link"> Click Here To Register!
+          </router-link>
         </div>
         <div class="form-group">
           <div v-if="message" class="alert alert-danger" role="alert">{{message}}</div>
@@ -71,6 +75,7 @@ export default {
     },
   },
   created() {
+    document.title = 'Login';
     if (this.loggedIn) {
       this.$router.push('/portfolio');
     }

@@ -6,26 +6,31 @@
   <div class ='nav-items' id="navbarText">
     <ul class="navbar-nav">
       <li class="nav-item">
-        <router-link to="/" class="nav-link color">Home</router-link>
+        <router-link to="/" id="home" class="nav-link color">Home</router-link>
       </li>
       <li class="nav-item">
-        <router-link to="/portfolio" class="nav-link color">Portfolio</router-link>
+        <router-link to="/portfolio" id="portfolio" class="nav-link color">Portfolio</router-link>
       </li>
       <li class="nav-item">
-        <router-link to="/trade/BTC/bitcoin" class="nav-link color">Trade</router-link>
+        <router-link to="/trade/BTC/bitcoin" id="trade" class="nav-link color">Trade</router-link>
       </li>
       <li class="nav-item">
-        <router-link to="/learn" class="nav-link color">Learn</router-link>
+        <router-link to="/learn" id="learn" class="nav-link color">Learn</router-link>
       </li>
     </ul>
   </div>
   <div class='loginB' id="userButton" style="margin-left: auto;">
       <button class="btn p-3 mb-2 bg-black text-light"
+        id="logout"
         v-if="this.$store.state.auth.status.loggedIn"
           @click="handleLogout()">
             Logout
       </button>
-      <button class="btn p-3 mb-2 bg-black text-light" v-else @click="handleLogin()">Login</button>
+      <button class="btn p-3 mb-2 bg-black text-light"
+        id="login"
+        v-else
+        @click="handleLogin()">
+        Login</button>
     </div>
 </nav>
 </template>
