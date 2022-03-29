@@ -187,9 +187,6 @@ export default {
       }
       this.updateAmount();
     };
-    this.connection.onopen = function (event) {
-      console.log(event);
-    };
   },
   methods: {
     async retrieveCandlesticks(interval = 'h1') {
@@ -206,7 +203,6 @@ export default {
         .then((response) => {
           if (response.data.data !== undefined) {
             this.$refs.tradingVue.resetChart();
-            console.log(response.data.data.length);
             if (response.data.data.length !== 0) {
               this.chart = this.stripDictonary(response.data.data);
               this.interval = interval;
@@ -242,7 +238,6 @@ export default {
        */
       const completeList = [];
       let subList = [];
-      console.log(data);
       data.forEach((element) => {
         subList.push(element.period);
         subList.push(parseFloat(element.open));
@@ -313,7 +308,6 @@ export default {
           });
           const assetBalance = this.assetBalance + amount;
           this.userData.assets[this.$route.params.coin] = assetBalance;
-          console.log(this.userBalance);
           this.updateDatabase(assetBalance);
         }
       }
@@ -352,10 +346,8 @@ export default {
     },
     updateDatabase(assetBalance) {
       // Sends an update to the database after a buy or sell has been executed to update a user.
-      console.log(this.userData);
       UserService.updateUser(this.userData).then(
-        (response) => {
-          console.log(response);
+        () => {
           this.userData.balance = this.userBalance;
           this.assetBalance = assetBalance;
         },

@@ -108,7 +108,7 @@ async def markets():
 
     """
     try:
-        markets = await marketMethods.getTradablePairs()
+        markets = await marketMethods.getTradablePairs(api_key)
         response = jsonify({
         'status': 'success',
         'markets': markets
@@ -162,7 +162,7 @@ async def retrieve_coinApi_pairs():
 
     """
     try:
-        return jsonify({"coins": await marketMethods.getTradablePairs()}), 200
+        return jsonify({"coins": await marketMethods.getTradablePairs(api_key)}), 200
     except Exception as err:
         return jsonify({'message': 'An Unknown Error Has Occured'}), 500 
 

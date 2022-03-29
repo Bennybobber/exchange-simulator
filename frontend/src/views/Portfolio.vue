@@ -394,8 +394,7 @@ export default {
         this.userData.trades = [];
         this.userData.balance = 100000;
         UserService.updateUser(this.userData).then(
-          (response) => {
-            console.log(response);
+          () => {
             this.getUser();
           },
           (error) => {
@@ -418,8 +417,7 @@ export default {
        */
       if (window.confirm('Are you sure you want to DELETE your profile? You will have to sign up again.')) {
         UserService.deleteUser(this.userData).then(
-          (response) => {
-            console.log(response);
+          () => {
             this.$store.dispatch('auth/logout', this.user).then(
               () => {
                 this.$router.push('/');

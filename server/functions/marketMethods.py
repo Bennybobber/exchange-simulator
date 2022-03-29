@@ -3,7 +3,7 @@ import json
 import asyncio
 import time
 
-async def getTradablePairs():
+async def getTradablePairs(api_key):
     """
     Retrieves all tradable pairs
 
@@ -13,11 +13,11 @@ async def getTradablePairs():
         filteredPairs (dict): dictionary of all filtered pairs
 
     """
-    coinapiPairs = await getCoinapiPairs()
+    coinapiPairs = await getCoinapiPairs(api_key)
     coinGeckoPairs = await getCoinGeckoCoins()
     return await filterPairs(coinGeckoPairs, coinapiPairs)
 
-async def getCoinapiPairs(): 
+async def getCoinapiPairs(api_key): 
     """
     Retrieves the CoinAPI pairs
 
@@ -28,7 +28,7 @@ async def getCoinapiPairs():
     """
     pairs = []
     headers= {
-        "Authorization": "Bearer 57401018-8c1c-4d0c-8c51-7116a7cba133"
+        "Authorization": "Bearer "+api_key
     }
     try:
         # Keep trying to get the data but don't spam (wait 5 seconds)

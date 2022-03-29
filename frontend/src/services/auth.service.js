@@ -12,7 +12,6 @@ class AuthService {
         password: user.password,
       })
       .then((response) => {
-        console.log(response.data);
         if (response.data.accessToken) {
           tokenService.setUser(response.data);
         }

@@ -96,10 +96,7 @@ export default {
         console.log(error);
       });
     try {
-      const user = localStorage.getItem('user');
-      if (user != null) {
-        console.log(user);
-      }
+      localStorage.getItem('user');
     } catch (error) {
       console.log('User not logged in');
     }
