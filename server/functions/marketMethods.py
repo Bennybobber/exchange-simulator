@@ -99,7 +99,6 @@ async def filterPairs(coinGeckoPairs, coinapiPairs):
         filteredPairs.sort(key = sort_by_marketcap)
         return filteredPairs
     except Exception as err:
-        print('error')
         print(err)
 
 async def specific_coin(symbol):
@@ -136,6 +135,12 @@ async def get_coin_history(coin, interval):
         }
         url = f"https://api.coincap.io/v2/candles?exchange=binance&interval={interval}&baseId={coin}&quoteId=tether"
         history = requests.get(url, headers)
+        if (history.status_code == 429):
+            return history
+        # Try another exchange if binance doesn't support the token.
+        if (len(history.json()['data']) == 0):
+            url = f"https://api.coincap.io/v2/candles?exchange=okex&interval={interval}&baseId={coin}&quoteId=tether"
+            history = requests.get(url, headers)
         if (history.status_code == 429):
             return history
         return history.json()

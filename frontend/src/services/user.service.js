@@ -8,7 +8,7 @@ class UserService {
   }
 
   updateUser(userData) {
-    return api.post(`${API_URL}user`, { data: userData });
+    return api.put(`${API_URL}user`, { data: userData });
   }
 
   deleteUser(userData) {

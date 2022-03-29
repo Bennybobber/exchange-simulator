@@ -1,5 +1,4 @@
 from flask import Flask, jsonify, request, make_response
-import requests
 import time
 
 from flask_cors import CORS
@@ -120,7 +119,7 @@ async def markets():
         return jsonify({'message': 'An Unknown Error Has Occured'}), 500
     return jsonify({'message': 'An Unknown Error Has Occured'}), 500
 
-@app.route('/api/user', methods=['GET','POST','DELETE'])
+@app.route('/api/user', methods=['GET','PUT','DELETE'])
 @jwt_required()
 async def retrieve_user_data():
     """
@@ -133,28 +132,22 @@ async def retrieve_user_data():
     """
     if request.method == 'GET':
         try:
-            username = get_jwt_identity()
-            user_data = await Database().retrieve_user_portfolio(username)
+            user_data = await Database().retrieve_user_portfolio(get_jwt_identity())
             user_data = json.dumps(user_data, default=str)
             return user_data, 200
         except Exception as err:
-            print(err)
             return jsonify({'message': 'An Unknown Error Has Occured'}), 500
-    if request.method == 'POST':
+    if request.method == 'PUT':
         try:
-            data = request.json
-            await Database().update_user(data['data'])
+            await Database().update_user(request.json['data'])
             return jsonify({'message':'Successful Trade'}), 200
         except Exception as err:
             print(err)
             return jsonify({'message': 'An Unknown Error Has Occured'}), 500
     if request.method == 'DELETE':
         try:
-            print("Delet this")
-            username = get_jwt_identity()
-            print(username)
-            await Database().delete_user(username)
-            return jsonify({'message':'Successful deleation'}), 200
+            await Database().delete_user(get_jwt_identity())
+            return jsonify({'message':'Successful deletion'}), 200
         except Exception as err:
             print(err)
             return jsonify({'message': 'An Unknown Error Has Occured'}), 500
@@ -184,7 +177,7 @@ async def get_coin_information():
     """
     try:
         data = await marketMethods.specific_coin(request.args.get('symbol'))
-        if data == False:
+        if data is False:
             return jsonify({'message': 'Coin was not found'}), 404
         return jsonify(data), 200
     except Exception as err:
@@ -207,7 +200,7 @@ async def get_coin_history():
     try:
         data = await marketMethods.get_coin_history(request.args.get('coin'), request.args.get('interval'))
         while (type(data) != dict):
-            time.sleep(2)
+            time.sleep(5)
             data = await marketMethods.get_coin_history(request.args.get('coin'), request.args.get('interval'))
         return data, 200
     except Exception as err:

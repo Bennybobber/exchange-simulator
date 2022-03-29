@@ -26,7 +26,7 @@
         </tr>
       </tbody>
     </table>
-  <div class='tradeChart'>
+  <div class='tradeChart' :class="{ hide: !candlesExist }">
     <div class = "timeButtons">
       <div class="timeContainer">
       <button @click="retrieveCandlesticks('m15')"
@@ -49,6 +49,11 @@
         :toolbar="true">
     </trading-vue>
     </div>
+  <div class='noGraph' :class="{ hide: candlesExist }">
+    <h1> There is currently no available graphs for this coin. </h1>
+    <p> Please check back again at a future date, as graphs will become
+      available as and when the API supports it! </p>
+  </div>
   <div class='tradePanel'>
     <h1> USD Balance: {{ this.userBalance.toFixed(2) }} </h1>
     <h1> {{ this.$route.params.coin }} Balance: {{ this.assetBalance }} </h1>
@@ -102,6 +107,7 @@ export default {
       height: window.innerHeight * 0.60,
       ohlcv: [],
       interval: '1h',
+      candlesExist: false,
     };
   },
   computed: {
@@ -135,8 +141,8 @@ export default {
       get: function () {
         return this.UsdBalance;
       },
-      set: function (blanace) {
-        this.UsdBalance = blanace;
+      set: function (balanace) {
+        this.UsdBalance = balanace;
       },
     },
     assetBalance: {
@@ -157,6 +163,7 @@ export default {
     },
   },
   created() {
+    document.title = `Trade USD/${this.$route.params.name.toUpperCase()}`;
     // Fetch user, candlestick, and coin data to set the page up when a user arrives.
     this.fetchUser();
     this.retrieveCandlesticks();
@@ -199,8 +206,12 @@ export default {
         .then((response) => {
           if (response.data.data !== undefined) {
             this.$refs.tradingVue.resetChart();
-            this.chart = this.stripDictonary(response.data.data);
-            this.interval = interval;
+            console.log(response.data.data.length);
+            if (response.data.data.length !== 0) {
+              this.chart = this.stripDictonary(response.data.data);
+              this.interval = interval;
+              this.candlesExist = true;
+            } else { this.candlesExist = false; }
           }
         })
         .catch((error) => {
@@ -291,6 +302,7 @@ export default {
       if (this.userBalance >= total && amount !== 0) {
         if (window.confirm('Are you sure you want to execute this buy?')) {
           this.userBalance -= total;
+          this.userData.balance -= total;
           this.userData.trades.push({
             trade_time: new Date().getTime(),
             type: 'buy',
@@ -299,8 +311,10 @@ export default {
             usd_cost: total,
             asset_cost: total / amount,
           });
-          this.assetBalance += amount;
-          this.updateDatabase();
+          const assetBalance = this.assetBalance + amount;
+          this.userData.assets[this.$route.params.coin] = assetBalance;
+          console.log(this.userBalance);
+          this.updateDatabase(assetBalance);
         }
       }
       this.amount = 0;
@@ -316,6 +330,7 @@ export default {
       if (this.assetBalance >= amount && amount !== 0) {
         if (window.confirm('Are you sure you want to execute this sell?')) {
           this.userBalance += total;
+          this.userData.balance += total;
           this.userData.trades.push({
             trade_time: new Date().getTime(),
             type: 'sell',
@@ -324,8 +339,9 @@ export default {
             usd_cost: total,
             asset_cost: total / amount,
           });
-          this.assetBalance -= amount;
-          this.updateDatabase();
+          const assetBalance = this.assetBalance - amount;
+          this.userData.assets[this.$route.params.coin] = assetBalance;
+          this.updateDatabase(assetBalance);
         }
       }
       this.amount = 0;
@@ -334,11 +350,15 @@ export default {
       // Dynamically updates the total cost of a buy/sell trade for the user.
       this.totals = this.amount * this.currentPrice;
     },
-    updateDatabase() {
+    updateDatabase(assetBalance) {
       // Sends an update to the database after a buy or sell has been executed to update a user.
-      this.userData.balance = this.userBalance;
+      console.log(this.userData);
       UserService.updateUser(this.userData).then(
-        (response) => { console.log(response); },
+        (response) => {
+          console.log(response);
+          this.userData.balance = this.userBalance;
+          this.assetBalance = assetBalance;
+        },
         (error) => {
           this.content = (error.response && error.response.data && error.response.data.message)
           || error.message
@@ -377,6 +397,9 @@ export default {
 };
 </script>
 <style scoped>
+.hide {
+  visibility: hidden !important;
+}
 .tradePanel{
   color:white;
   margin:auto;
@@ -443,6 +466,10 @@ export default {
 }
 .active{
   background-color: gray;
+}
+.noGraph {
+  border-style: solid;
+  background-color: red;
 }
 @media only screen and (max-width: 600px) {
 .tradePanel{
