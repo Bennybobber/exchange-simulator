@@ -5,15 +5,17 @@ const driver = new webdriver.Builder()
     .forBrowser("firefox")
     .build();
 
-describe("SimEx Test Suit", function() {
+describe("SimEx Test Suit USER REGISTER/LOGIN/RESET/DELETE accounts", function() {
     
-    before(function(done){
+    before(async function(){
         
         // do something before test suite execution
         // no matter if there are failed cases
-        driver
+        await driver
             .get("http://localhost:8080/");
-        driver.manage().setTimeouts( { implicit: 5000 } ).then(function(){done()});
+        await driver
+            .manage()
+            .setTimeouts( { implicit: 5000 } );
     
     });
 
@@ -36,130 +38,117 @@ describe("SimEx Test Suit", function() {
  
     });
 
-    it("Test-1 Correct Home Title", function(done) {
-        driver.getTitle()
-            .then(function(title) {
-                assert( title.match('SimEx Home'))
-                done();
-            })
-            .catch(err => done(err));
+    it("Test-1 Correct Home Title", async function() {
+        const title = await driver.getTitle();
+        assert( title.match('SimEx Home'));
     });
 
-    it("Test-2 Check Table Headings Exist", function(done) {
-        driver
+    it("Test-2 Check Table Headings Exist", async function() {
+        const rankHeaderCheck = await driver
             .findElement(webdriver.By.xpath("//*[contains(text(),'Rank')]"))
             .getText()
-            .then(function(text) {
-                assert(
-                    text.match('Rank #')
-                )
-                driver
-                    .findElement(webdriver.By.xpath("//*[contains(text(),'Currency Name')]"))
-                    .getText()
-                    .then(function(text) {
-                        assert(
-                            text.match('Currency Name')
-                        )
-                     done();
-                    })
-                    .catch(err => done(err));
-            })
-            .catch(err => done(err));
+        assert(
+            rankHeaderCheck.match('Rank #')
+        )
+        const currencyHeaderCheck = await driver
+                .findElement(webdriver.By.xpath("//*[contains(text(),'Currency Name')]"))
+                .getText()
+        assert(
+            currencyHeaderCheck.match('Currency Name')
+        )
         
     })
 
-    it("Test-3 Navigate to register", function(done) {
-        driver
+    it("Test-3 Navigate to register", async function() {
+        await driver
             .findElement(webdriver.By.id("login"))
             .click()
-            .then(function() {
-                driver
-                    .findElement(webdriver.By.id("register"))
-                    .click()
-                    .then(function() {
-                        driver
-                            .getTitle()
-                            .then(function(title) {
-                                assert( title.match('Register'))
-                                done();
-                            })
-                            .catch(err => done(err));
-                            })
-                    .catch(err => done(err));
-
-                })
-            .catch(err => done(err));
-        
+        await driver
+            .findElement(webdriver.By.id("register"))
+            .click()
+        const title = await driver
+            .getTitle()
+        assert( title.match('Register'))
     })
 
-    it("Test-4 Fill register an account", function(done) {
-        driver
+    it("Test-4 Fill register an account", async function() {
+        await driver
             .findElement(webdriver.By.name("username"))
             .sendKeys("test_username")
-            .catch(err => done(err));
-        driver
+        await driver
             .findElement(webdriver.By.name("password"))
             .sendKeys("test_password")
-            .catch(err => done(err))
-        driver
+        await driver
             .findElement(webdriver.By.xpath("//*[contains(text(),'Sign Up')]"))
             .click()
-            .then(function() {
-                driver
-                    .findElement(webdriver.By.xpath("//*[contains(text(),'successfully registered user')]"))
-                    .getText()
-                    .then(function(text) {
-                        assert (
-                            text.match ("successfully registered user")
-                        )
-                        done()
-                    })
-                    .catch (err => done(err))
-                })
-            .catch (err => done(err))
+        const successMessage = await driver
+            .findElement(webdriver.By.xpath("//*[contains(text(),'successfully registered user')]"))
+            .getText()
+        assert (
+            successMessage.match ("successfully registered user")
+        )
     })
 
-    it("Test-5 Login to the new account", function(done) {
-        driver
+    it("Test-5 Login to the new account", async function() {
+        await driver
             .findElement(webdriver.By.id("login"))
             .click()
-            .then( function() {
-                driver
-                    .findElement(webdriver.By.name("username"))
-                    .sendKeys("test_username")
-                    .catch(err => done(err));
-                driver
-                    .findElement(webdriver.By.name("password"))
-                    .sendKeys("test_password")
-                    .catch(err => done(err))
-                driver
-                    .findElement(webdriver.By.id("submit__login"))
-                    .click()
-                    .then(function() {
-                            done();
-                        })
-            .catch (err => done(err))
-            }
-                
-            )
-            .catch(err => done(err));
+        await driver
+            .findElement(webdriver.By.name("username"))
+            .sendKeys("test_username")
+        await driver
+            .findElement(webdriver.By.name("password"))
+            .sendKeys("test_password")
+        await driver
+            .findElement(webdriver.By.id("submit__login"))
+            .click()
         
     })
-
-    it("Test-6 Navigate to the portfolio page and delete account", function(done) {
-        driver
+    it("Test-6 Navigate to the portfolio page and reset account", async function() {
+        await driver
             .findElement(webdriver.By.id("portfolio"))
             .click()
-            .then(function() {
-                driver
-                    .findElement(webdriver.By.id("delete__button"))
-                    .click()
-                    .then(function() {
-                        driver.switchTo().alert().accept();
-                        done();
-                    })
-               
-            })
-            .catch(err => done(err))
+        await driver
+            .findElement(webdriver.By.id("reset__button"))
+            .click()
+        await driver
+            .switchTo()
+            .alert()
+            .accept()
+        balance = await driver
+            .findElement(webdriver.By.className("balance"))
+            .getText()
+        assert (balance === "USD Balance: $100000.00")
+    })
+
+    it("Test-7 Delete account", async function() {
+        await driver
+            .findElement(webdriver.By.id("delete__button"))
+            .click()
+        await driver
+            .switchTo()
+            .alert()
+            .accept()
+    })
+
+    it("Text-8 Try to login deleted account, and check it fails", async function() {
+        await driver
+            .findElement(webdriver.By.id("login"))
+            .click()
+        await driver
+            .findElement(webdriver.By.name("username"))
+            .sendKeys("test_username")
+        await driver
+            .findElement(webdriver.By.name("password"))
+            .sendKeys("test_password")
+        await driver
+            .findElement(webdriver.By.id("submit__login"))
+            .click()
+        const errorMessage = await driver
+            .findElement(webdriver.By.xpath("//*[contains(text(),'could not verify')]"))
+            .getText()
+        assert (
+            errorMessage.match ("could not verify")
+        )
     })
 })
